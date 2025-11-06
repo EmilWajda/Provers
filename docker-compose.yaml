@@ -8,3 +8,13 @@ services:
     volumes:
       - ./workspaces:/app/workspaces
     use_api_socket: true
+  spass:
+    image: loft-prover-spass:latest
+    build: ./provers/spass
+    container_name: loft-prover-spass
+    profiles: ["tools"]
+  vampire:
+    image: loft-prover-vampire:latest
+    build: ./provers/vampire
+    container_name: loft-prover-vampire
+    profiles: ["tools"]
