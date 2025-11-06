@@ -1,0 +1,10 @@
+name: loft
+
+services:
+  core:
+    image: loft-core:latest
+    build: ./core
+    container_name: loft-core
+    volumes:
+      - ./workspaces:/app/workspaces
+    use_api_socket: true
