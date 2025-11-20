@@ -9,7 +9,6 @@ from ..formulas import LogicToken, ForAll, Exists, Not, Alternative, Implication
 class Problem1(Generator):
     name = "Problem 1"
     param_spec = {"clauses": int, "lengths": list[int]}
-    safety_ratio = 0.5
     
 
     def generate(self) -> list[LogicToken]:
@@ -26,7 +25,7 @@ class Problem1(Generator):
             )
         
         num_per_length = total_clauses // len(clause_lengths)
-        safety_per_length = int(num_per_length * self.safety_ratio)
+        safety_per_length = num_per_length // 2
 
         # liczba atomów i ich nazwy
         num_atoms = total_clauses // 2
