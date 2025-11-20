@@ -13,9 +13,6 @@ class BasicToken(LogicToken):
     pass
 
 
-# TODO: wszystkie ponizsze: to_tptp
-
-
 @dataclass
 class GreaterThan(BasicToken):
     parameter_left: str
@@ -76,7 +73,7 @@ class ForAll(LogicToken):
     
 
     def to_tptp(self) -> str:
-        return f"! [{self.parameter}] : ({self.formula.to_tptp()})"
+        return f"! [{self.parameter}] : {self.formula.to_tptp()}"
 
 
 
@@ -87,9 +84,5 @@ class Exists(LogicToken):
     
 
     def to_tptp(self) -> str:
-        return f"? [{self.parameter}] : ({self.formula.to_tptp()})"
+        return f"? [{self.parameter}] : {self.formula.to_tptp()}"
     
-
-p = ForAll("U", Exists("V", Conjunction([GreaterThan("U", "V"), Implication(Not(Atom("var14", "V")), Atom("var5", "U"))])))
-
-print(p.to_tptp())
