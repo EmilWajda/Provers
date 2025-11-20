@@ -3,4 +3,4 @@ FROM nixos/nix:2.32.2
 RUN nix-channel --update
 RUN nix-env -iA nixpkgs.spass
 
-CMD ["SPASS"]
+ENTRYPOINT ["SPASS"]

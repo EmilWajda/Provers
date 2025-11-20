@@ -6,7 +6,7 @@ services:
     build: ./core
     container_name: loft-core
     volumes:
-      - ./workspaces:/app/workspaces
+      - ./workspaces:/loft/workspaces
     use_api_socket: true
   spass:
     image: loft-prover-spass:latest

@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
 
 from .formulas import LogicToken
 
@@ -10,9 +9,9 @@ class TPTPBuilder:
     role: str = "axiom"
     prefix: str = "ax"
 
-    def build_single_fof(self, name: str, role: str, clause_str: str) -> str:
+    def build_single_fof(self, name: str, clause_str: str) -> str:
         """ Buduje pojedynczy wpis FOF w formacie TPTP. """
-        return f"fof({name},{role},(\n{clause_str}\n)). \n"
+        return f"fof({name}, {self.role}, (\n{clause_str}\n)). \n"
 
     def build_tptp_str(self, clauses: list[LogicToken]) -> str:
         """ Tworzy pełny string w formacie TPTP z podanej listy klauzul. """
@@ -24,7 +23,7 @@ class TPTPBuilder:
             name = f"{self.prefix}{self.counter}"
             self.counter += 1
 
-            fof_entry = self.build_single_fof(name, self.role, clause_str)
+            fof_entry = self.build_single_fof(name, clause_str)
             lines.append(fof_entry)
 
         return "\n".join(lines)
