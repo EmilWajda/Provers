@@ -12,9 +12,13 @@ services:
     image: loft-prover-spass:latest
     build: ./provers/spass
     container_name: loft-prover-spass
+    volumes:
+      - ./workspaces:/loft/workspaces
     profiles: ["tools"]
   vampire:
     image: loft-prover-vampire:latest
     build: ./provers/vampire
     container_name: loft-prover-vampire
+    volumes:
+      - ./workspaces:/loft/workspaces
     profiles: ["tools"]
