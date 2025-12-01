@@ -2,18 +2,28 @@ from dataclasses import dataclass
 from typing import List
 
 from .generator import Generator
-from ..formulas import LogicToken, ForAll, Exists, Not, Alternative, Implication, GreaterThan, Atom, Conjunction, BasicToken
+from ..formulas import (
+    LogicToken,
+    ForAll,
+    Exists,
+    Not,
+    Alternative,
+    Implication,
+    GreaterThan,
+    Atom,
+    Conjunction,
+    BasicToken,
+)
 
 
 @dataclass
 class Problem1(Generator):
     name = "Problem 1"
     param_spec = {"clauses": int, "lengths": list[int]}
-    
 
     def generate(self) -> list[LogicToken]:
-        total_clauses = self.params.get("clauses")
-        clause_lengths = self.params.get("lengths")
+        total_clauses: int = self.params.get("clauses")  # type: ignore
+        clause_lengths: list[int] = self.params.get("lengths")  # type: ignore
 
         # walidacja pewnych przypadków
         if not clause_lengths:
@@ -23,7 +33,7 @@ class Problem1(Generator):
                 f"Liczba różnych długości klauzul ({len(clause_lengths)}) "
                 f"nie może przekraczać całkowitej liczby klauzul ({total_clauses})."
             )
-        
+
         num_per_length = total_clauses // len(clause_lengths)
         safety_per_length = num_per_length // 2
 
@@ -60,15 +70,10 @@ class Problem1(Generator):
 
         return clauses
 
-
-
-
-
-
     def _generate_safety_clause(self, length: int, atom_names: list[str], parameter: str) -> LogicToken:
         """Generuje pojedynczą klauzulę bezpieczeństwa o zadanej długości i parametrze (U)."""
         chosen_atoms = self.random.sample(atom_names, k=min(length, len(atom_names)))
-        literals: list[LogicToken] = []
+        literals: list[BasicToken] = []
 
         for name in chosen_atoms:
             atom = Atom(name, parameter)
@@ -78,7 +83,6 @@ class Problem1(Generator):
 
         return ForAll(parameter, Not(Alternative(literals)))
 
-        
     def _generate_liveness_clause(self, length: int, atom_names: list[str], parameters: list[str]) -> LogicToken:
         """Generuje pojedynczą klauzulę żywotnościową o zadanej długości i parametrach (U oraz V)."""
 
@@ -94,9 +98,9 @@ class Problem1(Generator):
 
         chosen_pred_atoms = self.random.sample(atom_names, k=min(k_pred, len(atom_names)))
         chosen_cons_atoms = self.random.sample(atom_names, k=min(k_cons, len(atom_names)))
-        
-        literals_predecessor: list[LogicToken] = []
-        literals_consequent: list[LogicToken] = []
+
+        literals_predecessor: list[BasicToken] = []
+        literals_consequent: list[BasicToken] = []
 
         # budowanie listy literałów poprzednika
         for name in chosen_pred_atoms:
@@ -119,7 +123,4 @@ class Problem1(Generator):
         gte = GreaterThan(U, V)
         body = Conjunction([gte, implication])
 
-        return ForAll(U, Exists(V, body))   
-
-
- 
+        return ForAll(U, Exists(V, body))
