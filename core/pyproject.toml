@@ -3,6 +3,6 @@ name = "loft-core"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "flask==3.1.2",
-    "python-on-whales==0.79.0",
+    "aiofiles==25.1.0",
+    "quart==0.20.0",
 ]

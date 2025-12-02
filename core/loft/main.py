@@ -1,9 +1,11 @@
 import json
+import asyncio
 from argparse import ArgumentParser
 from random import randint
 from os import path, makedirs
 from .tptp_builder import TPTPBuilder
 from .generators.problem1 import Problem1
+from .docker import run_docker_container
 
 
 def build_parser():
@@ -15,6 +17,11 @@ def build_parser():
     generate.add_argument("problem_num", type=int, help="Problem number/name to generate.")
     generate.add_argument("params", type=str, help="JSON string of parameters for the generator.")
     generate.add_argument("-s", "--seed", type=int, default=None, help="Random seed for generation.")
+
+    benchmark = sub.add_parser("benchmark", help="Run benchmarks on generated problems.")
+    benchmark.add_argument("prover", type=str, help="The prover to benchmark.")
+    benchmark.add_argument("problem_file", type=str, help="Path to the problem file.")
+    benchmark.add_argument("-t", "--timeout", type=int, help="Timeout in seconds.")
 
     return parser
 
@@ -46,3 +53,10 @@ def main():
         with open(file, "w") as f:
             f.write(tptp_output)
         print(f"Generated problem saved to {file}")
+    elif args.command == "benchmark":
+        print("Running benchmark...")
+        stdout, stderr = asyncio.run(run_docker_container(args.prover, args.problem_file, args.timeout))
+        print("Prover output:")
+        print(stdout)
+        print("Stats:")
+        print(stderr)
