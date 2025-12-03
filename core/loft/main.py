@@ -5,7 +5,7 @@ from random import randint
 from os import path, makedirs
 from .tptp_builder import TPTPBuilder
 from .generators.problem1 import Problem1
-from .docker import run_docker_container
+from .provers.known_provers import KNOWN_PROVERS
 
 
 def build_parser():
@@ -55,8 +55,13 @@ def main():
         print(f"Generated problem saved to {file}")
     elif args.command == "benchmark":
         print("Running benchmark...")
-        stdout, stderr = asyncio.run(run_docker_container(args.prover, args.problem_file, args.timeout))
-        print("Prover output:")
-        print(stdout)
-        print("Stats:")
-        print(stderr)
+        prover = KNOWN_PROVERS.get(args.prover.lower())
+        if not prover:
+            print(f"Prover '{args.prover}' is not known.")
+            return
+        result, stats = asyncio.run(prover.run_on_problem(args.problem_file, args.timeout))
+        print(f"Result: {result.value}")
+        if stats:
+            print(f"System Time: {stats.system_time:.2f} s")
+            print(f"Real Time: {stats.real_time:.2f} s")
+            print(f"Peak Memory: {stats.peak_memory} KB")
