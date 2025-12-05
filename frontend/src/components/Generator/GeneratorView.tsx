@@ -1,0 +1,47 @@
+import { useState } from 'react';
+import { Zap, Plus } from 'lucide-react';
+import type { Problem, ProblemType, ProblemParams } from '../../types';
+import CreateProblemModal from './CreateProblemModal';
+import ProblemList from './ProblemList';
+
+interface GeneratorViewProps {
+  problems: Problem[];
+  onAddProblem: (type: ProblemType, params: ProblemParams) => void;
+  onDeleteProblem: (id: string) => void;
+}
+
+const GeneratorView = ({ problems, onAddProblem, onDeleteProblem }: GeneratorViewProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleGenerate = (type: ProblemType, params: ProblemParams) => {
+    onAddProblem(type, params);
+    setIsModalOpen(false);
+  };
+
+  return (
+    <div className="p-8 h-full flex flex-col">
+      <div className="flex justify-between items-center mb-8 border-b pb-4">
+        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+          <Zap className="text-yellow-500 w-8 h-8" /> Generator
+        </h2>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium shadow-md transition-colors flex items-center gap-2"
+        >
+          <Plus size={20} /> Generate Problems
+        </button>
+      </div>
+
+      <ProblemList problems={problems} onDeleteProblem={onDeleteProblem} />
+
+      {isModalOpen && (
+        <CreateProblemModal 
+          onClose={() => setIsModalOpen(false)} 
+          onGenerate={handleGenerate} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default GeneratorView;
