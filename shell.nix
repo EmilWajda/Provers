@@ -9,6 +9,9 @@ pkgs.mkShell {
         pip
       ]
     ))
+    pkgs.nodejs
+    pkgs.cargo
+    pkgs.rustc
   ];
 
   shellHook = ''
@@ -19,6 +22,11 @@ pkgs.mkShell {
       pip install .
     else
       source .venv/bin/activate
+    fi
+    cd ..
+    cd frontend
+    if [ ! -d "node_modules" ]; then
+      npm install
     fi
     cd ..
   '';

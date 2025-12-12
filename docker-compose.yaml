@@ -19,3 +19,8 @@ services:
     build: ./provers/vampire
     container_name: loft-prover-vampire
     profiles: ["tools"]
+  tptp-checker:
+    image: loft-tptp-checker:latest
+    build: ./tools/tptp-checker
+    container_name: loft-tptp-checker
+    profiles: ["tools"]

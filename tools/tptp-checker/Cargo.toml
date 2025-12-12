@@ -1,0 +1,8 @@
+[package]
+name = "tptp-checker"
+version = "1.0.0"
+description = "A simple tool for checking syntax of TPTP problem files"
+edition = "2024"
+
+[dependencies]
+tptp = "0.31.1"
