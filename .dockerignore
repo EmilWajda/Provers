@@ -1,5 +1,9 @@
 Dockerfile
 .dockerignore
+.git
+.gitignore
+README.md
+shell.nix
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -16,3 +20,14 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Builds
+build/
+*.egg-info/
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# Generated files
+workspaces/

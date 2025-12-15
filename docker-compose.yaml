@@ -1,26 +1,41 @@
 name: loft
 
 services:
+
+  base:
+    image: loft-base
+    build:
+      dockerfile: base.Dockerfile
+    container_name: loft-base
+    profiles: ["tools"]
+
   core:
-    image: loft-core:latest
-    build: ./core
+    image: loft-core
+    build:
+      dockerfile: core.Dockerfile
     container_name: loft-core
     volumes:
       - ./workspaces:/loft/workspaces
       - ./docker-compose.yaml:/loft/docker-compose.yaml
       - /var/run/docker.sock:/var/run/docker.sock
+
   spass:
-    image: loft-prover-spass:latest
-    build: ./provers/spass
+    image: loft-prover-spass
+    build:
+      context: ./provers/spass
     container_name: loft-prover-spass
     profiles: ["tools"]
+
   vampire:
-    image: loft-prover-vampire:latest
-    build: ./provers/vampire
+    image: loft-prover-vampire
+    build:
+      context: ./provers/vampire
     container_name: loft-prover-vampire
     profiles: ["tools"]
+
   tptp-checker:
-    image: loft-tptp-checker:latest
-    build: ./tools/tptp-checker
+    image: loft-tptp-checker
+    build:
+      context: ./tools/tptp-checker
     container_name: loft-tptp-checker
     profiles: ["tools"]

@@ -1,8 +1,4 @@
-FROM nixos/nix:2.33.0
-
-WORKDIR /loft
-
-RUN nix-channel --update
+FROM loft-base
 
 COPY . .
 RUN nix-build -E 'with import <nixpkgs> {}; callPackage ./. {}'
