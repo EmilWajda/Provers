@@ -16,7 +16,6 @@ services:
     container_name: loft-core
     volumes:
       - ./workspaces:/loft/workspaces
-      - ./docker-compose.yaml:/loft/docker-compose.yaml
       - /var/run/docker.sock:/var/run/docker.sock
 
   spass:

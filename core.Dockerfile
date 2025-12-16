@@ -1,10 +1,9 @@
 FROM loft-base
-# TODO: fix
-RUN nix-env -iA nixpkgs.time nixpkgs.spass
 
-COPY core/pyproject.toml .
-RUN pip install --no-cache-dir .
+RUN nix-env -iA nixpkgs.docker-client
+COPY docker-compose.yaml .
 
 COPY core/ .
+RUN nix-build
 
-ENTRYPOINT ["python", "-m", "loft"]
+ENTRYPOINT ["result/bin/python", "-m", "loft"]

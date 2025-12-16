@@ -1,6 +1,6 @@
 FROM loft-base
 
 COPY . .
-RUN nix-build -E 'with import <nixpkgs> {}; callPackage ./. {}'
+RUN nix-build
 
 ENTRYPOINT ["result/bin/tptp-checker"]

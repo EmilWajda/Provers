@@ -1,5 +1,8 @@
-{ lib, rustPlatform }:
-rustPlatform.buildRustPackage (finalAttrs: {
+let
+  pkgs = import <nixpkgs> { };
+  inherit (pkgs) lib;
+in
+pkgs.rustPlatform.buildRustPackage (finalAttrs: {
   pname = "tptp-checker";
   version = "1.0.0";
 
