@@ -4,6 +4,7 @@ let
     import
       (builtins.fetchGit {
         url = "https://github.com/pyproject-nix/pyproject.nix.git";
+        rev = "2c8df1383b32e5443c921f61224b198a2282a657";
       })
       {
         inherit (pkgs) lib;
@@ -14,6 +15,12 @@ let
   attrs = project.renderers.buildPythonPackage { inherit python; };
   package = python.pkgs.buildPythonPackage attrs;
 in
-python.buildEnv.override {
-  extraLibs = [ package ];
+{
+  deps = pkgs.symlinkJoin {
+    name = "loft-deps";
+    paths = attrs.dependencies ++ [ python.buildEnv ];
+  };
+  core = python.buildEnv.override {
+    extraLibs = [ package ];
+  };
 }
