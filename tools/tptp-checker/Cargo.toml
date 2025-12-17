@@ -6,3 +6,4 @@ edition = "2024"
 
 [dependencies]
 tptp = "0.31.1"
+nom = "7.1.3"

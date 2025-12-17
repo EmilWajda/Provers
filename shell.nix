@@ -9,9 +9,12 @@ pkgs.mkShell {
         pip
       ]
     ))
+
     pkgs.nodejs
+
     pkgs.cargo
     pkgs.rustc
+    pkgs.clippy
   ];
 
   shellHook = ''
@@ -24,10 +27,13 @@ pkgs.mkShell {
       source .venv/bin/activate
     fi
     cd ..
+
     cd frontend
     if [ ! -d "node_modules" ]; then
       npm install
     fi
     cd ..
+
+    export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}";
   '';
 }
