@@ -20,28 +20,30 @@ services:
 
   spass:
     image: loft-prover-spass
-    build:
-      context: ./provers/spass
+    build: ./provers/spass
     container_name: loft-prover-spass
     profiles: ["tools"]
 
   vampire:
     image: loft-prover-vampire
-    build:
-      context: ./provers/vampire
+    build: ./provers/vampire
     container_name: loft-prover-vampire
     profiles: ["tools"]
 
   e:
     image: loft-prover-e
-    build:
-      context: ./provers/e
+    build: ./provers/e
     container_name: loft-prover-e
+    profiles: ["tools"]
+
+  iprover:
+    image: loft-prover-iprover
+    build: ./provers/iprover
+    container_name: loft-prover-iprover
     profiles: ["tools"]
 
   tptp-checker:
     image: loft-tptp-checker
-    build:
-      context: ./tools/tptp-checker
+    build: ./tools/tptp-checker
     container_name: loft-tptp-checker
     profiles: ["tools"]

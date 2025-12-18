@@ -2,7 +2,6 @@ FROM loft-base
 
 # Install necessary packages
 RUN nix-env -iA nixpkgs.docker-client
-COPY docker-compose.yaml .
 
 # Prebuild dependencies for caching purposes
 COPY core/default.nix .
@@ -13,5 +12,6 @@ RUN rm -rf result
 # Build and install final package
 COPY core/loft loft
 RUN nix-build -A core
+COPY docker-compose.yaml .
 
 ENTRYPOINT ["result/bin/python", "-m", "loft"]
