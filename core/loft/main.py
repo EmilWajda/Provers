@@ -3,6 +3,7 @@ import asyncio
 from argparse import ArgumentParser
 from random import randint
 from os import path, makedirs
+from .docker import run_tptp_checker
 from .tptp_builder import TPTPBuilder
 from .generators.problem1 import Problem1
 from .provers.known_provers import KNOWN_PROVERS
@@ -17,11 +18,15 @@ def build_parser():
     generate.add_argument("problem_num", type=int, help="Problem number/name to generate.")
     generate.add_argument("params", type=str, help="JSON string of parameters for the generator.")
     generate.add_argument("-s", "--seed", type=int, default=None, help="Random seed for generation.")
+    generate.add_argument("-c", "--no-check", action="store_true", help="Skip automatic TPTP syntax checking.")
 
     benchmark = sub.add_parser("benchmark", help="Run benchmarks on generated problems.")
     benchmark.add_argument("prover", type=str, help="The prover to benchmark.")
     benchmark.add_argument("problem_file", type=str, help="Path to the problem file.")
     benchmark.add_argument("-t", "--timeout", type=int, help="Timeout in seconds.")
+
+    check = sub.add_parser("check", help="Check TPTP problem syntax.")
+    check.add_argument("problem_file", type=str, help="Path to the problem file.")
 
     return parser
 
@@ -53,6 +58,9 @@ def main():
         with open(file, "w") as f:
             f.write(tptp_output)
         print(f"Generated problem saved to {file}")
+        if args.no_check:
+            return
+        args.problem_file = file
     elif args.command == "benchmark":
         print("Running benchmark...")
         prover = KNOWN_PROVERS.get(args.prover.lower())
@@ -65,3 +73,10 @@ def main():
             print(f"System Time: {stats.system_time:.2f} s")
             print(f"Real Time: {stats.real_time:.2f} s")
             print(f"Peak Memory: {stats.peak_memory} KB")
+        return
+    print("Checking TPTP problem syntax...")
+    is_valid = asyncio.run(run_tptp_checker(args.problem_file))
+    if is_valid:
+        print("Check successful.")
+    else:
+        print("Warning: TPTP problem syntax is invalid! Please report this issue to the developers.")
