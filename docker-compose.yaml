@@ -32,6 +32,13 @@ services:
     container_name: loft-prover-vampire
     profiles: ["tools"]
 
+  e:
+    image: loft-prover-e
+    build:
+      context: ./provers/e
+    container_name: loft-prover-e
+    profiles: ["tools"]
+
   tptp-checker:
     image: loft-tptp-checker
     build:
