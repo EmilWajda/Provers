@@ -13,6 +13,15 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
   const [lengths, setLengths] = useState<number[]>([2, 3, 4, 6, 8, 10]);
   const [newLength, setNewLength] = useState<string>('');
 
+  const PRESETS = {
+    Default: { clauses: 50, lengths: [2, 3, 4, 6, 8, 10] },
+    Short: { clauses: 30, lengths: [2,3,4] },
+    Long: { clauses: 100, lengths: [6,8,10,12] },
+    Custom: null as null | { clauses: number; lengths: number[] }
+  };
+  const [selectedPreset, setSelectedPreset] = useState<keyof typeof PRESETS>('Default');
+  const [showPresets, setShowPresets] = useState<boolean>(false);
+
   const handleGenerate = () => {
     onGenerate(selectedType, { clauses, lengths });
   };
@@ -22,17 +31,33 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
     if (!Number.isNaN(val) && val > 0 && !lengths.includes(val)) {
       setLengths([...lengths, val].sort((a, b) => a - b));
       setNewLength('');
+      setSelectedPreset('Custom');
     }
   };
 
   const handleRemoveLength = (val: number) => {
     setLengths(lengths.filter(l => l !== val));
+    setSelectedPreset('Custom');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddLength();
+    }
+  };
+
+  const applyPreset = (key: keyof typeof PRESETS) => {
+    setSelectedPreset(key);
+    const p = PRESETS[key];
+    if (p) {
+      setClauses(p.clauses);
+      setLengths([...p.lengths]);
+    } else {
+      // Custom
+      setClauses(0);
+      setLengths([]);
+      setNewLength('');
     }
   };
 
@@ -43,16 +68,37 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
         <div className="space-y-4">
           <div>
             <label htmlFor="problem-type" className="block text-sm font-medium text-gray-700 mb-1">Problem type</label>
-            <select 
-              id="problem-type"
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value as ProblemType)}
-            >
-              <option value="Problem 1">Problem 1</option>
-              <option value="Problem 2">Problem 2</option>
-              <option value="Problem 3">Problem 3</option>
-            </select>
+            <div className="flex items-center justify-between">
+              <select 
+                id="problem-type"
+                className="w-56 border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value as ProblemType)}
+              >
+                <option value="Problem 1">Problem 1</option>
+                <option value="Problem 2">Problem 2</option>
+                <option value="Problem 3">Problem 3</option>
+              </select>
+              <div className="ml-3 relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPresets(s => !s)}
+                  className="text-sm px-3 h-10 flex items-center border rounded-md bg-gray-50 hover:bg-gray-100"
+                >
+                  Presets: {selectedPreset} ▾
+                </button>
+                {showPresets && (
+                  <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                    <div className="flex flex-col p-1">
+                      <button type="button" onClick={() => { applyPreset('Default'); setShowPresets(false); }} className="text-left px-2 py-1 rounded hover:bg-gray-100">Default</button>
+                      <button type="button" onClick={() => { applyPreset('Short'); setShowPresets(false); }} className="text-left px-2 py-1 rounded hover:bg-gray-100">Short</button>
+                      <button type="button" onClick={() => { applyPreset('Long'); setShowPresets(false); }} className="text-left px-2 py-1 rounded hover:bg-gray-100">Long</button>
+                      <button type="button" onClick={() => { applyPreset('Custom'); setShowPresets(false); }} className="text-left px-2 py-1 rounded hover:bg-gray-100">Custom</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div>
             <label htmlFor="problem-clauses" className="block text-sm font-medium text-gray-700 mb-1">Number of clauses</label>
@@ -62,7 +108,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
               placeholder="e.g. 100"
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
               value={clauses}
-              onChange={(e) => setClauses(Number.parseInt(e.target.value) || 0)}
+              onChange={(e) => { setClauses(Number.parseInt(e.target.value) || 0); setSelectedPreset('Custom'); }}
             />
           </div>
           <div>
