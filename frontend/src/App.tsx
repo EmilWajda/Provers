@@ -58,7 +58,10 @@ const App = () => {
 
   const addProblem = (type: ProblemType, params: ProblemParams) => {
     if (!activeWorkspaceId) return;
-    const newProblem: Problem = { id: Date.now().toString(), name: `Problem_${type.at(-1)}_${Date.now().toString().slice(-5)}`, type, params };
+    const lengthsPart = params.lengths.join('_');
+    const ts = Math.floor(Date.now() / 1000);
+    const name = `Problem_${type.at(-1)}_clauses_${params.clauses}_lengths_${lengthsPart}_timestamp_${ts}`;
+    const newProblem: Problem = { id: Date.now().toString(), name, type, params };
     setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: [...ws.problems, newProblem] } : ws));
   };
 
