@@ -2,5 +2,5 @@
 set -e
 
 cat > input
-command="iproveropt input"
+command="prover9 -f input"
 /root/.nix-profile/bin/time -v sh -c "$command 2>&1"

@@ -24,7 +24,7 @@ def build_parser():
 
     benchmark = sub.add_parser("benchmark", help="Run benchmarks on generated problems.")
     benchmark.add_argument("prover", type=str, help="The prover to benchmark.")
-    benchmark.add_argument("problem_file", type=str, help="Path to the problem file.")
+    benchmark.add_argument("problem_file", type=str, help="Path to the problem file, relative to the selected workspace.")
     benchmark.add_argument("-t", "--timeout", type=int, help="Timeout in seconds.")
 
     check = sub.add_parser("check", help="Check TPTP problem syntax.")
@@ -69,13 +69,18 @@ def main():
         if not prover:
             print(f"Prover '{args.prover}' is not known.")
             return
-        result, stats = asyncio.run(prover.run_on_problem(args.problem_file, args.timeout))
+        directory = path.join("workspaces", workspace)
+        if not path.exists(path.join(directory, args.problem_file)):
+            print(f"Problem file '{args.problem_file}' does not exist in workspace '{workspace}'.")
+            return
+        result, stats = asyncio.run(prover.run_on_problem(directory, args.problem_file, args.timeout))
         print(f"Result: {result.value}")
         if stats:
             print(f"System Time: {stats.system_time:.2f} s")
             print(f"Real Time: {stats.real_time:.2f} s")
             print(f"Peak Memory: {stats.peak_memory} KB")
         return
+    
     print("Checking TPTP problem syntax...")
     is_valid = asyncio.run(run_tptp_checker(args.problem_file))
     if is_valid:

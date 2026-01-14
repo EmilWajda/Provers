@@ -2,6 +2,8 @@ name: loft
 
 services:
 
+  # Base and core images
+
   base:
     image: loft-base
     build:
@@ -19,6 +21,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
+
+  # Provers
 
   spass:
     image: loft-prover-spass
@@ -44,8 +48,28 @@ services:
     container_name: loft-prover-iprover
     profiles: ["tools"]
 
+  prover9:
+    image: loft-prover-prover9
+    build: ./provers/prover9
+    container_name: loft-prover-prover9
+    profiles: ["tools"]
+
+  # TPTP checker and converters
+
   tptp-checker:
     image: loft-tptp-checker
     build: ./tools/tptp-checker
     container_name: loft-tptp-checker
+    profiles: ["tools"]
+
+  cnf:
+    image: loft-converter-cnf
+    build: ./tools/cnf
+    container_name: loft-converter-cnf
+    profiles: ["tools"]
+
+  ladr:
+    image: loft-converter-ladr
+    build: ./tools/ladr
+    container_name: loft-converter-ladr
     profiles: ["tools"]
