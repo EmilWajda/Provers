@@ -18,6 +18,9 @@ venv.bak/
 build/
 *.egg-info/
 result
+node_modules/
+dist/
+logs/
 
 # IDEs and editors
 .idea/
@@ -25,3 +28,4 @@ result
 
 # Generated files
 workspaces/
+core/loft/static
