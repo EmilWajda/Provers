@@ -2,7 +2,7 @@ let
   pkgs = import <nixpkgs> { };
   pyproject-nix =
     import
-      (builtins.fetchGit {
+      (fetchGit {
         url = "https://github.com/pyproject-nix/pyproject.nix.git";
         rev = "2c8df1383b32e5443c921f61224b198a2282a657";
       })

@@ -9,9 +9,14 @@ COPY core/pyproject.toml .
 RUN nix-build -A deps
 RUN rm -rf result
 
+# Copy entrypoint script
+COPY core/entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 # Build and install final package
 COPY core/loft loft
 RUN nix-build -A core
 COPY docker-compose.yaml .
 
-ENTRYPOINT ["result/bin/python", "-m", "loft"]
+EXPOSE 8000
+ENTRYPOINT ["./entrypoint.sh"]

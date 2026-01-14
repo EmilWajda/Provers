@@ -5,6 +5,7 @@ from random import randint
 from os import path, makedirs
 from .docker import run_tptp_checker
 from .tptp_builder import TPTPBuilder
+from .web_api import app as quart_app
 from .generators.problem1 import Problem1
 from .provers.known_provers import KNOWN_PROVERS
 
@@ -12,7 +13,8 @@ from .provers.known_provers import KNOWN_PROVERS
 def build_parser():
     parser = ArgumentParser(prog="loft", description="LOFT, the prover benchmarking tool")
     parser.add_argument("-w", "--workspace", type=str, default="default", help="Workspace subdirectory.")
-    sub = parser.add_subparsers(dest="command", help="Subcommand to run.")
+    sub = parser.add_subparsers(dest="command", help="Subcommand to run. If none is provided, behaves as if 'dev' was given.")
+    sub.add_parser("dev", help="Run the LOFT web server in development mode.")
 
     generate = sub.add_parser("generate", help="Generate benchmark problems.")
     generate.add_argument("problem_num", type=int, help="Problem number/name to generate.")
@@ -33,8 +35,8 @@ def build_parser():
 
 def main():
     args = build_parser().parse_args()
-    if not args.command:
-        print("No command provided. Currently, server mode is not functional. Use -h for help.")
+    if not args.command or args.command == "dev":
+        quart_app.run(debug=True, port=8000, host="0.0.0.0")
         return
     workspace = args.workspace
 

@@ -17,6 +17,8 @@ services:
     volumes:
       - ./workspaces:/loft/workspaces
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8000:8000"
 
   spass:
     image: loft-prover-spass
