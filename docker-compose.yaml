@@ -54,6 +54,24 @@ services:
     container_name: loft-prover-prover9
     profiles: ["tools"]
 
+  z3:
+    image: loft-prover-z3
+    build: ./provers/z3
+    container_name: loft-prover-z3
+    profiles: ["tools"]
+
+  cvc4:
+    image: loft-prover-cvc4
+    build: ./provers/cvc4
+    container_name: loft-prover-cvc4
+    profiles: ["tools"]
+
+  cvc5:
+    image: loft-prover-cvc5
+    build: ./provers/cvc5
+    container_name: loft-prover-cvc5
+    profiles: ["tools"]
+
   # TPTP checker and converters
 
   tptp-checker:
@@ -72,4 +90,10 @@ services:
     image: loft-converter-ladr
     build: ./tools/ladr
     container_name: loft-converter-ladr
+    profiles: ["tools"]
+
+  smt2:
+    image: loft-converter-smt2
+    build: ./tools/smt2
+    container_name: loft-converter-smt2
     profiles: ["tools"]
