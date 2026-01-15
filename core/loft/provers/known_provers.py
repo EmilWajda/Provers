@@ -10,4 +10,5 @@ KNOWN_PROVERS: dict[str, Prover] = {  # TODO: verify result parsers
     "z3": Prover("z3", basic_result_parser("sat", "unsat"), "smt2"),
     "cvc4": Prover("cvc4", basic_result_parser("satisfiable", "unsatisfiable")),
     "cvc5": Prover("cvc5", basic_result_parser("sat", "unsat"), "smt2"),
+    "drodi": Prover("drodi", basic_result_parser("satisfiable", "unsatisfiable")),
 }

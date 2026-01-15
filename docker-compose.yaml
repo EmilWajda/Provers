@@ -72,6 +72,12 @@ services:
     container_name: loft-prover-cvc5
     profiles: ["tools"]
 
+  drodi:
+    image: loft-prover-drodi
+    build: ./provers/drodi
+    container_name: loft-prover-drodi
+    profiles: ["tools"]
+
   # TPTP checker and converters
 
   tptp-checker:
