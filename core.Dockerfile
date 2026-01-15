@@ -17,8 +17,7 @@ RUN nix-env -iA nixpkgs.docker-client
 # Prebuild dependencies for caching purposes
 COPY core/default.nix .
 COPY core/pyproject.toml .
-RUN nix-build -A deps
-RUN rm -rf result
+RUN nix-build --no-out-link -A deps
 
 # Copy entrypoint script
 COPY core/entrypoint.sh .

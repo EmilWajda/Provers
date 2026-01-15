@@ -18,10 +18,7 @@ let
   package = python.pkgs.buildPythonPackage attrs;
 in
 {
-  deps = pkgs.symlinkJoin {
-    name = "loft-deps";
-    paths = attrs.dependencies ++ [ python.buildEnv ];
-  };
+  deps = attrs.dependencies ++ [ python.buildEnv ];
   core = python.buildEnv.override {
     extraLibs = [ package ];
   };
