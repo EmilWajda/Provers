@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import './App.css';
 import type { Workspace, Problem, Result, ProblemType, TabName, WorkspaceSettings, ProblemParams } from './types';
 
@@ -8,12 +9,38 @@ import BenchmarkView from './components/Benchmark/BenchmarkView';
 import ResultsView from './components/Results/ResultsView';
 import SettingsView from './components/Settings/SettingsView';
 
+const fetchWorkspaces = async () => {
+  const res = await fetch('http://127.0.0.1:8000/api/workspaces');
+  return res.json();
+};
+
 const App = () => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabName>('settings');
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  // 1. Pobierz dane w tle
+  const { data } = useQuery({
+    queryKey: ['workspaces'],
+    queryFn: fetchWorkspaces,
+  });
+
+  // 2. Jak dane przyjdą, wpisz je do aplikacji
+  useEffect(() => {
+    if (data?.workspaces) {
+      // Zamieniamy nazwy folderów (np. "Projekt1") na obiekty Workspace
+      const fromDisk = data.workspaces.map((name: string) => ({
+        id: name,
+        name: name,
+        problems: [],
+        results: [],
+        settings: { seedMode: 'random', timeout: 60 }
+      }));
+      setWorkspaces(fromDisk);
+    }
+  }, [data]);
 
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
