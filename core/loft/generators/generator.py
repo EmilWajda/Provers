@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from typing import ClassVar, Any, Union, Tuple
+from typing import ClassVar, Any, Self
 from random import Random
-from typing import get_origin, get_args
 
+from .param_spec import ParamSpec
 from ..formulas import (
     LogicToken,
     ForAll,
@@ -21,44 +21,46 @@ from ..formulas import (
 @dataclass
 class Generator(ABC):
     name: ClassVar[str]
-    param_spec: ClassVar[dict[str, Union[type, Tuple[type, ...]]]]
+    param_spec: ClassVar[dict[str, ParamSpec]]
+    presets: ClassVar[dict[str, dict[str, Any]]]
 
     seed: int
     random: Random = field(init=False)
     params: dict[str, Any]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.random = Random(self.seed)
         self._validate_params()
 
-    def _validate_params(self):
+    @classmethod
+    def from_preset(cls, preset_name: str, seed: int) -> Self:
+        if preset_name not in cls.presets:
+            raise ValueError(f"Preset '{preset_name}' not found.")
+        params = cls.presets[preset_name]
+        return cls(seed=seed, params=params)
+
+    def _validate_params(self) -> None:
         for key, expected_type in self.param_spec.items():
             if key not in self.params:
                 raise ValueError(f"Missing required parameter '{key}' in params.")
-
             value = self.params[key]
+            if not expected_type.validate(value):
+                checks = expected_type.get_checks()
+                checks_str = ", ".join(f"{k}={v}" for k, v in checks.items() if v is not None) if checks else "any"
+                raise ValueError(
+                    f"Parameter '{key}' has invalid value: {value}. Expected: {expected_type.name} ({checks_str})."
+                )
+        error = self.validate_extra()
+        if error is not None:
+            raise ValueError(error)
 
-            # Obsługa list dodatkowo typowanych
-            if get_origin(expected_type) is list:
-                if not isinstance(value, list):
-                    raise TypeError(f"Parameter '{key}' must be a list, got {type(value).__name__}")
-
-                (elem_type,) = get_args(expected_type)
-                for i, elem in enumerate(value):
-                    if not isinstance(elem, elem_type):
-                        raise TypeError(
-                            f"Element params['{key}'][{i}] must be {elem_type}, " + f"got {type(elem).__name__}"
-                        )
-
-            # obsługa zwykłych typów
-            else:
-                if not isinstance(value, expected_type):
-                    raise TypeError(f"Parameter '{key}' must be {expected_type}, got {type(value).__name__}.")
+    @abstractmethod
+    def validate_extra(self) -> str | None: ...
 
     @abstractmethod
     def generate(self) -> list[LogicToken]: ...
 
-    def _generate_safety_clause(self, length: int, atom_names: list[str], parameter: str) -> LogicToken:
+    def _generate_safety_clause(self, length: int, atom_names: list[str], parameter: str = "U") -> LogicToken:
         """Generuje pojedynczą klauzulę bezpieczeństwa o zadanej długości i parametrze (U)."""
         chosen_atoms = self.random.sample(atom_names, k=min(length, len(atom_names)))
         literals: list[BasicToken] = []
@@ -71,15 +73,10 @@ class Generator(ABC):
 
         return ForAll(parameter, Not(Alternative(literals)))
 
-    def _generate_liveness_clause(self, length: int, atom_names: list[str], parameters: list[str]) -> LogicToken:
+    def _generate_liveness_clause(
+        self, length: int, atom_names: list[str], parameters: tuple[str, str] = ("U", "V")
+    ) -> LogicToken:
         """Generuje pojedynczą klauzulę żywotnościową o zadanej długości i parametrach (U oraz V)."""
-
-        # walidacja
-        if len(parameters) != 2:
-            raise ValueError("parameters powinno mieć dokładnie 2 elementy, np. ['U', 'V'].")
-        if length < 2:
-            raise ValueError("length musi być >= 2, żeby poprzednik i następnik nie były puste.")
-
         U, V = parameters[0], parameters[1]
         k_pred = self.random.randint(1, length - 1)
         k_cons = length - k_pred

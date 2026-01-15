@@ -2,20 +2,25 @@ from dataclasses import dataclass
 from typing import List
 
 from .generator import Generator
+from .std_params import StandardParams
 from ..formulas import LogicToken
 
 
 @dataclass
 class Problem4(Generator):
-    name = "Problem 4"
-    param_spec = {"clauses": int, "length": int}
+    name = "4"
+    param_spec = {
+        "clauses": StandardParams.CLAUSES.value,
+        "length": StandardParams.LENGTH.value,
+    }
+    presets = {}
+
+    def validate_extra(self) -> str | None:
+        return None
 
     def generate(self) -> list[LogicToken]:
         total_clauses: int = self.params.get("clauses")  # type: ignore
         clause_length: int = self.params.get("length")  # type: ignore
-
-        if clause_length < 2:
-            raise ValueError("Param 'length' must be >= 2 for liveness clauses.")
 
         num_atoms = total_clauses // 2
         if num_atoms < 1:
@@ -28,8 +33,8 @@ class Problem4(Generator):
 
         for i in range(total_clauses):
             if i < safety_target:
-                clauses.append(self._generate_safety_clause(clause_length, atom_names, "U"))
+                clauses.append(self._generate_safety_clause(clause_length, atom_names))
             else:
-                clauses.append(self._generate_liveness_clause(clause_length, atom_names, ["U", "V"]))
+                clauses.append(self._generate_liveness_clause(clause_length, atom_names))
 
         return clauses

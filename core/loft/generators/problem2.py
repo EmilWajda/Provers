@@ -3,20 +3,25 @@ from typing import List
 import math
 
 from .generator import Generator
+from .std_params import StandardParams
 from ..formulas import LogicToken
 
 
 @dataclass
 class Problem2(Generator):
-    name = "Problem 2"
-    param_spec = {"clauses": int, "lambda": (int, float)}
+    name = "2"
+    param_spec = {
+        "clauses": StandardParams.CLAUSES.value,
+        "lambda": StandardParams.LAMBDA.value,
+    }
+    presets = {}
+
+    def validate_extra(self) -> str | None:
+        return None
 
     def generate(self) -> list[LogicToken]:
         total_clauses: int = self.params.get("clauses")  # type: ignore
-        lam: float = float(self.params.get("lambda"))  # type: ignore
-
-        if lam <= 0:
-            raise ValueError("Parametr lambda musi być dodatni.")
+        lam: float = self.params.get("lambda")  # type: ignore
 
         # atomy i ich nazwy
         num_atoms = total_clauses // 2
@@ -65,11 +70,11 @@ class Problem2(Generator):
                 is_safety = i < target_safety_local
 
                 if is_safety:
-                    clauses.append(self._generate_safety_clause(length_val, atom_names, "U"))
+                    clauses.append(self._generate_safety_clause(length_val, atom_names))
                 else:
                     # Liveness musi mieć min długość 2
                     final_len = max(2, length_val)
-                    clauses.append(self._generate_liveness_clause(final_len, atom_names, ["U", "V"]))
+                    clauses.append(self._generate_liveness_clause(final_len, atom_names))
         # uzupełnianie brakujących klauzul
         while len(clauses) < total_clauses:
             # Losujemy długość z zaplanowanych
@@ -79,10 +84,10 @@ class Problem2(Generator):
             is_safety = self.random.choice([True, False])
 
             if is_safety:
-                clauses.append(self._generate_safety_clause(chosen_length, atom_names, "U"))
+                clauses.append(self._generate_safety_clause(chosen_length, atom_names))
             else:
                 final_len = max(2, chosen_length)
-                clauses.append(self._generate_liveness_clause(final_len, atom_names, ["U", "V"]))
+                clauses.append(self._generate_liveness_clause(final_len, atom_names))
 
         return clauses
 

@@ -3,23 +3,43 @@ from typing import List
 import math
 
 from .generator import Generator
+from .std_params import StandardParams
 from ..formulas import LogicToken
 
 
 @dataclass
 class Problem6(Generator):
-    name = "Problem 6"
+    name = "6"
     # lengths wymagane tylko gdy poisson jest False, a lambda gdy True
-    param_spec = {"clauses": int, "safety_percentage": (int, float), "poisson": bool}
+    param_spec = {
+        "clauses": StandardParams.CLAUSES.value,
+        "safety_percentage": StandardParams.SAFETY_PERCENTAGE.value,
+        "poisson": StandardParams.POISSON.value,
+        "lambda": StandardParams.LAMBDA_OR_NONE.value,
+        "lengths": StandardParams.LENGTHS_OR_NONE.value,
+    }
+    presets = {}
+
+    def validate_extra(self) -> str | None:
+        poisson: bool = bool(self.params.get("poisson"))  # type: ignore
+        lam: float = self.params.get("lambda")  # type: ignore
+        lengths: list[int] = self.params.get("lengths")  # type: ignore
+
+        if poisson:
+            if lam == 0:
+                return "Lambda must be greater than 0 when poisson is enabled."
+        else:
+            if not lengths:
+                return "Clause lengths list cannot be empty when poisson is disabled."
+            total_clauses: int = self.params.get("clauses")  # type: ignore
+            if len(lengths) > total_clauses:
+                return "Number of different clause lengths cannot exceed total number of clauses."
+        return None
 
     def generate(self) -> list[LogicToken]:
         total_clauses: int = self.params.get("clauses")  # type: ignore
         safety_percentage = float(self.params.get("safety_percentage"))  # type: ignore
         poisson: bool = bool(self.params.get("poisson"))  # type: ignore
-        lam: float | None = None
-
-        if safety_percentage < 0 or safety_percentage > 100:
-            raise ValueError("Parametr 'safety_percentage' musi być w przedziale [0,100].")
 
         safety_coeff = safety_percentage / 100.0
 
@@ -30,9 +50,7 @@ class Problem6(Generator):
         clauses: List[LogicToken] = []
 
         if poisson:
-            if "lambda" not in self.params:
-                raise ValueError("Parametr 'lambda' jest wymagany gdy 'poisson' jest True.")
-            lam = float(self.params.get("lambda"))  # type: ignore
+            lam: float = self.params.get("lambda")  # type: ignore
             planned_lengths: List[int] = []
             planned_counts: List[int] = []
 
@@ -64,9 +82,9 @@ class Problem6(Generator):
                     is_safety = i < target_safety_local
 
                     if is_safety:
-                        clauses.append(self._generate_safety_clause(length_val, atom_names, "U"))
+                        clauses.append(self._generate_safety_clause(length_val, atom_names))
                     else:
-                        clauses.append(self._generate_liveness_clause(max(2, length_val), atom_names, ["U", "V"]))
+                        clauses.append(self._generate_liveness_clause(max(2, length_val), atom_names))
 
             # uzupełnianie brakujących klauzul losowo zgodnie z zaplanowanymi długościami
             while len(clauses) < total_clauses:
@@ -74,19 +92,12 @@ class Problem6(Generator):
                 is_safety = self.random.random() < safety_coeff
 
                 if is_safety:
-                    clauses.append(self._generate_safety_clause(chosen_length, atom_names, "U"))
+                    clauses.append(self._generate_safety_clause(chosen_length, atom_names))
                 else:
-                    clauses.append(self._generate_liveness_clause(max(2, chosen_length), atom_names, ["U", "V"]))
+                    clauses.append(self._generate_liveness_clause(max(2, chosen_length), atom_names))
 
         else:
             clause_lengths: list[int] = self.params.get("lengths")  # type: ignore
-            if not clause_lengths:
-                raise ValueError("Lista długości klauzul (params['lengths']) nie może być pusta w trybie non-Poisson.")
-
-            if len(clause_lengths) > total_clauses:
-                raise ValueError(
-                    f"Liczba różnych długości klauzul ({len(clause_lengths)}) nie może przekraczać całkowitej liczby klauzul ({total_clauses})."
-                )
 
             num_per_length = total_clauses // len(clause_lengths)
             safety_per_length = round(num_per_length * safety_coeff)
@@ -95,22 +106,22 @@ class Problem6(Generator):
                 for i in range(num_per_length):
                     is_safety = i < safety_per_length
                     if is_safety:
-                        clauses.append(self._generate_safety_clause(length, atom_names, "U"))
+                        clauses.append(self._generate_safety_clause(length, atom_names))
                     else:
-                        clauses.append(self._generate_liveness_clause(max(2, length), atom_names, ["U", "V"]))
+                        clauses.append(self._generate_liveness_clause(max(2, length), atom_names))
 
             # uzupełnianie brakujących klauzul
             half_of_remaining_clauses = round((total_clauses - len(clauses)) * safety_coeff)
 
             for _ in range(half_of_remaining_clauses):
                 length = self.random.choice(clause_lengths)
-                clauses.append(self._generate_safety_clause(length, atom_names, "U"))
+                clauses.append(self._generate_safety_clause(length, atom_names))
 
             while len(clauses) < total_clauses:
                 length = self.random.choice(clause_lengths)
-                clauses.append(self._generate_liveness_clause(max(2, length), atom_names, ["U", "V"]))
+                clauses.append(self._generate_liveness_clause(max(2, length), atom_names))
 
-        #przyciecie jesli jest za duzo klauzul
+        # przyciecie jesli jest za duzo klauzul
         if len(clauses) > total_clauses:
             clauses = clauses[:total_clauses]
 

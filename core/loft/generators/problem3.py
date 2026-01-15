@@ -2,24 +2,27 @@ from dataclasses import dataclass
 from typing import List
 
 from .generator import Generator
+from .std_params import StandardParams
 from ..formulas import LogicToken
 
 
 @dataclass
-class Problem3(Generator):
-    name = "Problem 3"
-    param_spec = {"clauses": int, "lengths": list[int], "ratio": int}
+class Problem3(Generator):  # TODO: verify with description
+    name = "3"
+    param_spec = {
+        "clauses": StandardParams.CLAUSES.value,
+        "lengths": StandardParams.LENGTHS.value,
+        "ratio": StandardParams.RATIO.value,
+    }
+    presets = {}
+
+    def validate_extra(self) -> str | None:
+        return None
 
     def generate(self) -> list[LogicToken]:
         total_clauses: int = self.params.get("clauses")  # type: ignore
         clause_lengths: list[int] = self.params.get("lengths")  # type: ignore
         ratio: int = self.params.get("ratio")  # type: ignore
-
-        # walidacja
-        if not clause_lengths:
-            raise ValueError("Lista długości klauzul (params['lengths']) nie może być pusta.")
-        if ratio < 1:
-            raise ValueError("Parametr 'ratio' musi być >= 1.")
 
         # liczba atomów zależna od współczynnika ratio
         num_atoms = total_clauses * ratio
@@ -40,19 +43,19 @@ class Problem3(Generator):
             for i in range(num_per_length):
                 is_safety = i < safety_per_length
                 if is_safety:
-                    clauses.append(self._generate_safety_clause(length, atom_names, "U"))
+                    clauses.append(self._generate_safety_clause(length, atom_names))
                 else:
-                    clauses.append(self._generate_liveness_clause(max(2, length), atom_names, ["U", "V"]))
+                    clauses.append(self._generate_liveness_clause(max(2, length), atom_names))
 
         # uzupełnianie brakujących klauzul
         half_of_remaining_clauses = (total_clauses - len(clauses)) // 2
 
         for _ in range(half_of_remaining_clauses):
             length = self.random.choice(allowed_lengths)
-            clauses.append(self._generate_safety_clause(length, atom_names, "U"))
+            clauses.append(self._generate_safety_clause(length, atom_names))
 
         while len(clauses) < total_clauses:
             length = self.random.choice(allowed_lengths)
-            clauses.append(self._generate_liveness_clause(max(2, length), atom_names, ["U", "V"]))
+            clauses.append(self._generate_liveness_clause(max(2, length), atom_names))
 
         return clauses

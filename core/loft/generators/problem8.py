@@ -5,6 +5,7 @@ from random import Random
 from .generator import Generator
 from .problem1 import Problem1
 from .problem2 import Problem2
+from .std_params import StandardParams
 from ..formulas import (
     LogicToken,
     Conjunction,
@@ -15,27 +16,40 @@ from ..formulas import (
 
 @dataclass
 class Problem8(Generator):
-    name = "Problem 8"
-    param_spec = {"clauses": int, "poisson": bool, "mode": str}
+    name = "8"
+    param_spec = {
+        "clauses": StandardParams.CLAUSES.value,
+        "poisson": StandardParams.POISSON.value,
+        "mode": StandardParams.MODE.value,
+        "lambda": StandardParams.LAMBDA_OR_NONE.value,
+        "lengths": StandardParams.LENGTHS_OR_NONE.value,
+    }
+    presets = {}
+
+    def validate_extra(self) -> str | None:
+        poisson: bool = bool(self.params.get("poisson"))  # type: ignore
+        lam: float = self.params.get("lambda")  # type: ignore
+        lengths: list[int] = self.params.get("lengths")  # type: ignore
+
+        if poisson:
+            if lam == 0:
+                return "Lambda must be greater than 0 when poisson is enabled."
+        else:
+            if not lengths:
+                return "Clause lengths list cannot be empty when poisson is disabled."
+        return None
 
     def generate(self) -> list[LogicToken]:
         clauses_num: int = self.params.get("clauses")  # type: ignore
         poisson: bool = self.params.get("poisson")  # type: ignore
         mode: str = self.params.get("mode")  # type: ignore
 
-        if mode not in ["contradictory", "subcontrary", "subalternated"]:
-            raise ValueError(f"Unknown mode: {mode}. Expected 'contradictory', 'subcontrary', or 'subalternated'.")
-
         if poisson:
             lam = self.params.get("lambda")
-            if lam is None:
-                raise ValueError("Parameter 'lambda' is required when 'poisson' is True.")
             params_sub = {"clauses": clauses_num, "lambda": lam}
             GenClass = Problem2
         else:
             lengths = self.params.get("lengths")
-            if lengths is None:
-                raise ValueError("Parameter 'lengths' is required when 'poisson' is False.")
             params_sub = {"clauses": clauses_num, "lengths": lengths}
             GenClass = Problem1
 
