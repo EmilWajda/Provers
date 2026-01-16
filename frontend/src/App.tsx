@@ -1,105 +1,50 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import './App.css';
-import type { Workspace, Problem, Result, ProblemType, TabName, WorkspaceSettings, ProblemParams } from './types';
+import { useState } from "react";
+import "./App.css";
+import type { Workspace, Problem, Result, ProblemType, TabName, WorkspaceSettings, ProblemParams } from "./types";
 
-import Sidebar from './components/Sidebar/Sidebar';
-import GeneratorView from './components/Generator/GeneratorView';
-import BenchmarkView from './components/Benchmark/BenchmarkView';
-import ResultsView from './components/Results/ResultsView';
-import SettingsView from './components/Settings/SettingsView';
-
-const fetchWorkspaces = async () => {
-  const res = await fetch('http://127.0.0.1:8000/api/workspaces');
-  return res.json();
-};
+import Sidebar from "./components/Sidebar/Sidebar";
+import GeneratorView from "./components/Generator/GeneratorView";
+import BenchmarkView from "./components/Benchmark/BenchmarkView";
+import ResultsView from "./components/Results/ResultsView";
+import SettingsView from "./components/Settings/SettingsView";
+import useWorkspaces from "./hooks/useWorkspaces";
 
 const App = () => {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const { workspaces, isLoading, createWorkspace, deleteWorkspace } = useWorkspaces();
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabName>('settings');
+  const [activeTab, setActiveTab] = useState<TabName>("settings");
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  // 1. Pobierz dane w tle
-  const { data } = useQuery({
-    queryKey: ['workspaces'],
-    queryFn: fetchWorkspaces,
-  });
+  const activeWorkspace: Workspace | null = null;
 
-  // 2. Jak dane przyjdą, wpisz je do aplikacji
-  useEffect(() => {
-    if (data?.workspaces) {
-      // Zamieniamy nazwy folderów (np. "Projekt1") na obiekty Workspace
-      const fromDisk = data.workspaces.map((name: string) => ({
-        id: name,
-        name: name,
-        problems: [],
-        results: [],
-        settings: { seedMode: 'random', timeout: 60 }
-      }));
-      setWorkspaces(fromDisk);
-    }
-  }, [data]);
-
-  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
-
-  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  const showNotification = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const createWorkspace = (name: string) => {
-    if (workspaces.some(w => w.name === name)) {
-      showNotification('Workspace with this name already exists.', 'error');
-      return;
-    }
-    const newWorkspace: Workspace = { 
-      id: Date.now().toString(), 
-      name: name, 
-      problems: [], 
-      results: [],
-      settings: {
-        seedMode: 'random',
-        timeout: 60
-      }
-    };
-    setWorkspaces([...workspaces, newWorkspace]);
-    setActiveWorkspaceId(newWorkspace.id);
-    setActiveTab('settings');
-    showNotification('Workspace created successfully');
-  };
-
-  const deleteWorkspace = (id: string) => {
-    setWorkspaces(workspaces.filter(w => w.id !== id));
-    if (activeWorkspaceId === id) {
-      setActiveWorkspaceId(null);
-    }
-    showNotification('Workspace deleted successfully');
-  };
-
   const updateWorkspaceSettings = (settings: WorkspaceSettings) => {
     if (!activeWorkspaceId) return;
-    setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, settings } : ws));
+    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, settings } : ws));
   };
 
   const addProblem = (type: ProblemType, params: ProblemParams) => {
     if (!activeWorkspaceId) return;
-    const lengthsPart = params.lengths.join('_');
+    const lengthsPart = params.lengths.join("_");
     const ts = Math.floor(Date.now() / 1000);
     const name = `Problem_${type.at(-1)}_clauses_${params.clauses}_lengths_${lengthsPart}_timestamp_${ts}`;
     const newProblem: Problem = { id: Date.now().toString(), name, type, params };
-    setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: [...ws.problems, newProblem] } : ws));
+    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: [...ws.problems, newProblem] } : ws));
   };
 
   const deleteProblem = (problemId: string) => {
     if (!activeWorkspaceId) return;
-    setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: ws.problems.filter(p => p.id !== problemId) } : ws));
+    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: ws.problems.filter(p => p.id !== problemId) } : ws));
   };
 
   const submitBenchmark = (selectedProblemIds: string[], selectedProvers: string[]) => {
     if (!activeWorkspaceId) return;
-// tymczasowa logika generowania wyników benchmarku
+    /*
     const currentWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
     if (!currentWorkspace) return;
 
@@ -118,7 +63,6 @@ const App = () => {
         }), {})
       };
     });
-// koniec tymczasowej logiki
     const newResult: Result = {
       id: Date.now().toString(),
       timestamp: new Date().toLocaleString(),
@@ -129,52 +73,63 @@ const App = () => {
     setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, results: [newResult, ...ws.results] } : ws));
     setActiveTab('results');
     setActiveResultId(newResult.id);
+    */
   };
 
   const renderContent = () => {
-    if (!activeWorkspace) return <div className="flex items-center justify-center h-full text-gray-400">Select or create a Workspace to start.</div>;
-    
-    switch (activeTab) {
-      case 'settings': 
-        return (
-          <SettingsView 
-            workspaceName={activeWorkspace.name} 
-            settings={activeWorkspace.settings} 
-            onSave={updateWorkspaceSettings} 
-            onNotify={showNotification}
-          />
-        );
-      case 'generator':  
-        return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
-      case 'benchmark': 
-        return <BenchmarkView problems={activeWorkspace.problems} onSubmit={submitBenchmark} onNotify={showNotification} />;
-      case 'results': 
-        return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
-      default: 
-        return null;
-    }
+    if (!activeWorkspace)
+      return (
+        <div className="flex items-center justify-center h-full text-gray-400">
+          Select or create a Workspace to start.
+        </div>
+      );
+
+    // switch (activeTab) {
+    //   case 'settings':
+    //     return (
+    //       <SettingsView
+    //         workspaceName={activeWorkspace.name}
+    //         settings={activeWorkspace.settings}
+    //         onSave={updateWorkspaceSettings}
+    //         onNotify={showNotification}
+    //       />
+    //     );
+    //   case 'generator':
+    //     return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
+    //   case 'benchmark':
+    //     return <BenchmarkView problems={activeWorkspace.problems} onSubmit={submitBenchmark} onNotify={showNotification} />;
+    //   case 'results':
+    //     return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
+    //   default:
+    //     return null;
+    // }
   };
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
-      <Sidebar 
+      <Sidebar
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
         activeTab={activeTab}
+        isLoading={isLoading}
         onCreateWorkspace={createWorkspace}
         onDeleteWorkspace={deleteWorkspace}
         onSelectWorkspace={setActiveWorkspaceId}
-        onSelectTab={(workspaceId, tab) => { 
+        onSelectTab={(workspaceId, tab) => {
           setActiveWorkspaceId(workspaceId);
-          setActiveTab(tab); 
-          setActiveResultId(null); 
+          setActiveTab(tab);
+          setActiveResultId(null);
         }}
       />
       <main className="flex-1 overflow-auto bg-white shadow-inner m-2 rounded-xl border border-gray-200">
         {renderContent()}
       </main>
       {notification && (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl text-white font-medium ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'} z-50 transition-all animate-fade-in`}>
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl text-white font-medium ${
+            notification.type === "success" ? "bg-green-600" : "bg-red-600"
+          } z-50 transition-all animate-fade-in`}
+        >
           {notification.message}
         </div>
       )}

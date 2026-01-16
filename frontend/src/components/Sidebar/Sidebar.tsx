@@ -1,27 +1,35 @@
-import { useState, useEffect } from 'react';
-import SidebarHeader from './SidebarHeader';
-import CreateWorkspace from './CreateWorkspace';
-import WorkspaceItem from './WorkspaceItem';
-import type { Workspace, TabName } from '../../types';
+import { useState, useEffect } from "react";
+import SidebarHeader from "./SidebarHeader";
+import CreateWorkspace from "./CreateWorkspace";
+import WorkspaceItem from "./WorkspaceItem";
+import type { TabName } from "../../types";
 
 interface SidebarProps {
-  workspaces: Workspace[];
+  workspaces: string[];
   activeWorkspaceId: string | null;
   activeTab: TabName;
+  isLoading: boolean;
   onCreateWorkspace: (name: string) => void;
   onDeleteWorkspace: (id: string) => void;
   onSelectWorkspace: (id: string | null) => void;
   onSelectTab: (workspaceId: string, tab: TabName) => void;
 }
 
-const Sidebar = ({ 
-  workspaces, activeWorkspaceId, activeTab, onCreateWorkspace, onDeleteWorkspace, onSelectWorkspace, onSelectTab 
+const Sidebar = ({
+  workspaces,
+  activeWorkspaceId,
+  activeTab,
+  isLoading,
+  onCreateWorkspace,
+  onDeleteWorkspace,
+  onSelectWorkspace,
+  onSelectTab,
 }: SidebarProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (activeWorkspaceId) {
-      setExpandedIds(prev => {
+      setExpandedIds((prev) => {
         const newSet = new Set(prev);
         if (!newSet.has(activeWorkspaceId)) {
           newSet.add(activeWorkspaceId);
@@ -48,19 +56,19 @@ const Sidebar = ({
   return (
     <div className="w-64 bg-gray-100 flex flex-col border-r border-gray-200 h-full flex-shrink-0">
       <SidebarHeader />
-      <CreateWorkspace onCreate={onCreateWorkspace} />
-      
+      <CreateWorkspace onCreate={onCreateWorkspace} isLoading={isLoading} />
+
       <div className="flex-1 overflow-y-auto px-2">
-        {workspaces.map(ws => (
-          <WorkspaceItem 
-            key={ws.id}
+        {workspaces.map((ws) => (
+          <WorkspaceItem
+            key={ws}
             workspace={ws}
-            isActive={ws.id === activeWorkspaceId}
-            isExpanded={expandedIds.has(ws.id)}
+            isActive={ws === activeWorkspaceId}
+            isExpanded={expandedIds.has(ws)}
             activeTab={activeTab}
-            onToggleExpand={() => toggleExpansion(ws.id)}
+            onToggleExpand={() => toggleExpansion(ws)}
             onDeleteWorkspace={onDeleteWorkspace}
-            onSelectTab={(tab) => onSelectTab(ws.id, tab)}
+            onSelectTab={(tab) => onSelectTab(ws, tab)}
           />
         ))}
       </div>
