@@ -25,7 +25,7 @@ export const NotificationProvider: React.FC<React.PropsWithChildren<{}>> = ({ ch
       clearTimeout(timeoutRef.current);
     }
     setNotification(data);
-    timeoutRef.current = setTimeout(() => setNotification(null), 2000);
+    timeoutRef.current = setTimeout(() => setNotification(null), 3000);
   };
 
   return (

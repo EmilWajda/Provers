@@ -9,75 +9,61 @@ import ResultsView from "./components/Results/ResultsView";
 import SettingsView from "./components/Settings/SettingsView";
 import useWorkspaces from "./hooks/useWorkspaces";
 import Notification from "./components/Notification";
+import { useActiveWorkspace } from "./hooks/useActiveWorkspace";
 
 const App = () => {
   const { workspaces, isLoading, createWorkspace, deleteWorkspace } = useWorkspaces();
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const { workspace: activeWorkspace, setWorkspace: setActiveWorkspace } = useActiveWorkspace();
   const [activeTab, setActiveTab] = useState<TabName>("settings");
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
 
-  const activeWorkspace: Workspace | null = null;
+  // const submitBenchmark = (selectedProblemIds: string[], selectedProvers: string[]) => {
+  //   if (!activeWorkspaceId) return;
+  //   const currentWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
+  //   if (!currentWorkspace) return;
 
-  const updateWorkspaceSettings = (settings: WorkspaceSettings) => {
-    if (!activeWorkspaceId) return;
-    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, settings } : ws));
-  };
-
-  const addProblem = (type: ProblemType, params: ProblemParams) => {
-    if (!activeWorkspaceId) return;
-    const lengthsPart = params.lengths.join("_");
-    const ts = Math.floor(Date.now() / 1000);
-    const name = `Problem_${type.at(-1)}_clauses_${params.clauses}_lengths_${lengthsPart}_timestamp_${ts}`;
-    const newProblem: Problem = { id: Date.now().toString(), name, type, params };
-    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: [...ws.problems, newProblem] } : ws));
-  };
-
-  const deleteProblem = (problemId: string) => {
-    if (!activeWorkspaceId) return;
-    // setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, problems: ws.problems.filter(p => p.id !== problemId) } : ws));
-  };
-
-  const submitBenchmark = (selectedProblemIds: string[], selectedProvers: string[]) => {
-    if (!activeWorkspaceId) return;
-    /*
-    const currentWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
-    if (!currentWorkspace) return;
-
-    const detailedResults = selectedProblemIds.map(id => {
-      const problem = currentWorkspace.problems.find(p => p.id === id);
-      const problemStatus = Math.random() > 0.5 ? 'SAT' : 'UNSAT';
-      return {
-        problemName: problem ? problem.name : 'Unknown',
-        proverResults: selectedProvers.reduce((acc, prover) => ({
-          ...acc,
-          [prover]: {
-            time: Number((Math.random() * 5).toFixed(3)),
-            memory: Math.floor(Math.random() * 50000 + 1000),
-            status: problemStatus
-          }
-        }), {})
-      };
-    });
-    const newResult: Result = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleString(),
-      provers: selectedProvers,
-      problemCount: selectedProblemIds.length,
-      detailedResults
-    };
-    setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, results: [newResult, ...ws.results] } : ws));
-    setActiveTab('results');
-    setActiveResultId(newResult.id);
-    */
-  };
+  //   const detailedResults = selectedProblemIds.map(id => {
+  //     const problem = currentWorkspace.problems.find(p => p.id === id);
+  //     const problemStatus = Math.random() > 0.5 ? 'SAT' : 'UNSAT';
+  //     return {
+  //       problemName: problem ? problem.name : 'Unknown',
+  //       proverResults: selectedProvers.reduce((acc, prover) => ({
+  //         ...acc,
+  //         [prover]: {
+  //           time: Number((Math.random() * 5).toFixed(3)),
+  //           memory: Math.floor(Math.random() * 50000 + 1000),
+  //           status: problemStatus
+  //         }
+  //       }), {})
+  //     };
+  //   });
+  //   const newResult: Result = {
+  //     id: Date.now().toString(),
+  //     timestamp: new Date().toLocaleString(),
+  //     provers: selectedProvers,
+  //     problemCount: selectedProblemIds.length,
+  //     detailedResults
+  //   };
+  //   setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, results: [newResult, ...ws.results] } : ws));
+  //   setActiveTab('results');
+  //   setActiveResultId(newResult.id);
+  // };
 
   const renderContent = () => {
-    if (!activeWorkspace)
+    if (!activeWorkspace) {
       return (
         <div className="flex items-center justify-center h-full text-gray-400">
           Select or create a Workspace to start.
         </div>
       );
+    }
+
+    return (
+      // TODO: readd views
+      <div className="flex items-center justify-center h-full text-green-400">
+        Selected: {activeWorkspace}, tab: {activeTab}
+      </div>
+    );
 
     // switch (activeTab) {
     //   case 'settings':
@@ -104,14 +90,19 @@ const App = () => {
     <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
       <Sidebar
         workspaces={workspaces}
-        activeWorkspaceId={activeWorkspaceId}
         activeTab={activeTab}
         isLoading={isLoading}
         onCreateWorkspace={createWorkspace}
-        onDeleteWorkspace={deleteWorkspace}
-        onSelectWorkspace={setActiveWorkspaceId}
+        onDeleteWorkspace={(workspace) => {
+          deleteWorkspace(workspace);
+          if (activeWorkspace === workspace) {
+            setActiveWorkspace(null);
+            setActiveTab("settings");
+            setActiveResultId(null);
+          }
+        }}
         onSelectTab={(workspaceId, tab) => {
-          setActiveWorkspaceId(workspaceId);
+          setActiveWorkspace(workspaceId);
           setActiveTab(tab);
           setActiveResultId(null);
         }}

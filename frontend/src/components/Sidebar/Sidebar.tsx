@@ -3,29 +3,27 @@ import SidebarHeader from "./SidebarHeader";
 import CreateWorkspace from "./CreateWorkspace";
 import WorkspaceItem from "./WorkspaceItem";
 import type { TabName } from "../../types";
+import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
 
 interface SidebarProps {
   workspaces: string[];
-  activeWorkspaceId: string | null;
   activeTab: TabName;
   isLoading: boolean;
   onCreateWorkspace: (name: string) => void;
   onDeleteWorkspace: (id: string) => void;
-  onSelectWorkspace: (id: string | null) => void;
   onSelectTab: (workspaceId: string, tab: TabName) => void;
 }
 
 const Sidebar = ({
   workspaces,
-  activeWorkspaceId,
   activeTab,
   isLoading,
   onCreateWorkspace,
   onDeleteWorkspace,
-  onSelectWorkspace,
   onSelectTab,
 }: SidebarProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const activeWorkspaceId = useActiveWorkspace().workspace;
 
   useEffect(() => {
     if (activeWorkspaceId) {
@@ -44,9 +42,6 @@ const Sidebar = ({
     const newSet = new Set(expandedIds);
     if (newSet.has(id)) {
       newSet.delete(id);
-      if (id === activeWorkspaceId) {
-        onSelectWorkspace(null);
-      }
     } else {
       newSet.add(id);
     }

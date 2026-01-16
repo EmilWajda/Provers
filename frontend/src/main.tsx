@@ -4,6 +4,7 @@ import App from "./App";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotificationProvider } from "./hooks/useNotificationContext";
+import { ActiveWorkspaceProvider } from "./hooks/useActiveWorkspace";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +15,9 @@ if (rootElement) {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <NotificationProvider>
-          <App />
+          <ActiveWorkspaceProvider>
+            <App />
+          </ActiveWorkspaceProvider>
         </NotificationProvider>
       </QueryClientProvider>
     </React.StrictMode>,
