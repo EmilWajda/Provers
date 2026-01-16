@@ -16,6 +16,9 @@ class ParamSpec(ABC):
     def get_checks(self) -> dict[str, Any]: ...
 
     @abstractmethod
+    def sanitize_value(self, value: Any) -> str: ...
+
+    @abstractmethod
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None: ...
 
     def get_schema(self) -> dict[str, Any]:
@@ -43,6 +46,9 @@ class Integer(ParamSpec):
 
     def get_checks(self) -> dict[str, Any]:
         return {"min": self.min_value, "max": self.max_value}
+    
+    def sanitize_value(self, value: Any) -> str:
+        return str(value)
 
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None:
         parser.add_argument(name, type=int, help=self.description)
@@ -65,6 +71,9 @@ class Float(ParamSpec):
 
     def get_checks(self) -> dict[str, Any]:
         return {"min": self.min_value, "max": self.max_value}
+    
+    def sanitize_value(self, value: Any) -> str:
+        return f"{value:.2f}"
 
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None:
         parser.add_argument(name, type=float, help=self.description)
@@ -79,6 +88,9 @@ class Boolean(ParamSpec):
 
     def get_checks(self) -> dict[str, Any]:
         return {}
+    
+    def sanitize_value(self, value: Any) -> str:
+        return "true" if value else "false"
 
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None:
         parser.add_argument(f"--{name}", action="store_true", help=self.description)
@@ -94,6 +106,9 @@ class Choice(ParamSpec):
 
     def get_checks(self) -> dict[str, Any]:
         return {"choices": self.choices}
+    
+    def sanitize_value(self, value: Any) -> str:
+        return value
 
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None:
         parser.add_argument(name, type=str, choices=self.choices, help=self.description)
@@ -128,6 +143,9 @@ class IntegerList(ParamSpec):
             "min_value": self.min_value,
             "max_value": self.max_value,
         }
+    
+    def sanitize_value(self, value: Any) -> str:
+        return "_".join(str(v) for v in value)
 
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None:
         parser.add_argument(name, type=int, nargs="*", help=self.description)

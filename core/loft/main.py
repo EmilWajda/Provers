@@ -1,13 +1,8 @@
-import json
-import asyncio
 from argparse import ArgumentParser
-from random import randint
-from os import path, makedirs
-from .docker import run_tptp_checker
-from .tptp_builder import TPTPBuilder
 from .web_api import app as quart_app
 from .generators import KNOWN_PROBLEMS
 from .provers import KNOWN_PROVERS
+from .cli import check, benchmark, generate
 
 
 def build_parser() -> ArgumentParser:
@@ -26,7 +21,7 @@ def build_parser() -> ArgumentParser:
             spec.add_cli_argument(field, p)
 
     benchmark = sub.add_parser("benchmark", help="Run benchmarks on generated problems.")
-    benchmark.add_argument("prover", type=str, help="The prover to benchmark.")
+    benchmark.add_argument("prover", type=str, choices=KNOWN_PROVERS, help="The prover to benchmark.")
     benchmark.add_argument("problem_file", type=str, help="Path to the problem file, relative to the selected workspace.")
     benchmark.add_argument("-t", "--timeout", type=int, help="Timeout in seconds.")
 
@@ -41,52 +36,13 @@ def main() -> None:
     if not args.command or args.command == "dev":
         quart_app.run(debug=True, port=8000, host="0.0.0.0")
         return
-    workspace = args.workspace
-
-    if args.command == "generate":
-        seed = args.seed or randint(0, 2**32 - 1)
-        print(f"Using seed: {seed}")
-        params = json.loads(args.params)
-        if args.problem_num != 1:
-            print(f"Problem number {args.problem_num} is not implemented.")
-            return
-
-        generator = Problem1(seed, params)
-        problem = generator.generate()
-        tptp_output = TPTPBuilder().build_tptp_str(problem)
-
-        problem_dir = generator.name.replace(" ", "").lower()
-        problem_name = f"clauses_{params["clauses"]}_lengths_{'_'.join(map(str, params["lengths"]))}.tptp"
-        directory = path.join("workspaces", workspace, problem_dir)
-        makedirs(directory, exist_ok=True)
-        file = path.join(directory, problem_name)
-        with open(file, "w") as f:
-            f.write(tptp_output)
-        print(f"Generated problem saved to {file}")
-        if args.no_check:
-            return
-        args.problem_file = file
-    elif args.command == "benchmark":
-        print("Running benchmark...")
-        prover = KNOWN_PROVERS.get(args.prover.lower())
-        if not prover:
-            print(f"Prover '{args.prover}' is not known.")
-            return
-        directory = path.join("workspaces", workspace)
-        if not path.exists(path.join(directory, args.problem_file)):
-            print(f"Problem file '{args.problem_file}' does not exist in workspace '{workspace}'.")
-            return
-        result, stats = asyncio.run(prover.run_on_problem(directory, args.problem_file, args.timeout))
-        print(f"Result: {result.value}")
-        if stats:
-            print(f"System Time: {stats.system_time:.2f} s")
-            print(f"Real Time: {stats.real_time:.2f} s")
-            print(f"Peak Memory: {stats.peak_memory} KB")
-        return
     
-    print("Checking TPTP problem syntax...")
-    is_valid = asyncio.run(run_tptp_checker(args.problem_file))
-    if is_valid:
-        print("Check successful.")
-    else:
-        print("Warning: TPTP problem syntax is invalid! Please report this issue to the developers.")
+    match args.command:
+        case "generate":
+            generated = generate(args.workspace, args.seed, args.problem, vars(args))
+            if not args.no_check and generated is not None:
+                check(args.workspace, generated)
+        case "benchmark":
+            benchmark(args.workspace, args.problem_file, args.prover, args.timeout)
+        case "check":
+            check(args.workspace, args.problem_file)

@@ -39,6 +39,18 @@ class Generator(ABC):
         params = cls.presets[preset_name]
         return cls(seed=seed, params=params)
 
+    def get_suggested_path(self) -> tuple[str, str]:
+        problem_dir = f"problem_{self.name}"
+        file_name = []
+        for key, spec in self.param_spec.items():
+            file_name.append(key)
+            file_name.append("_")
+            file_name.append(spec.sanitize_value(self.params[key]))
+            file_name.append("_")
+        file_name.append("seed_")
+        file_name.append(str(self.seed))
+        return problem_dir, "".join(file_name)
+
     def _validate_params(self) -> None:
         for key, expected_type in self.param_spec.items():
             if key not in self.params:
