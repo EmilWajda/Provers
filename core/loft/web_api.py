@@ -1,10 +1,8 @@
 from os import path
 from quart import Quart, request
 from aiofiles import os as aos
-from quart_cors import cors
 
 app = Quart("loft", static_url_path="/")
-app = cors(app, allow_origin="*")
 
 
 async def _remove_directory(dir_path: str) -> None:

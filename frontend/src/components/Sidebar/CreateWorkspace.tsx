@@ -24,7 +24,9 @@ const CreateWorkspace = ({ isLoading, onCreate }: CreateWorkspaceProps) => {
       <div className="p-4">
         <button
           onClick={() => setIsCreating(true)}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors shadow-sm font-medium"
+          className={`w-full flex items-center justify-center gap-2 ${
+            isLoading ? "cursor-not-allowed bg-gray-600 hover:bg-gray-700" : "bg-blue-600 hover:bg-blue-700"
+          } text-white py-2 px-4 rounded-lg transition-colors shadow-sm font-medium`}
           disabled={isLoading}
         >
           <Plus size={18} /> Create Workspace

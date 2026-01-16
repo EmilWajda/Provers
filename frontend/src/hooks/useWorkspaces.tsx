@@ -14,14 +14,14 @@ export default function useWorkspaces(): {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<string[]> => {
-      const response = await axios.get("http://127.0.0.1:8000/api/workspaces");
+      const response = await axios.get("/api/workspaces");
       return response.data.workspaces;
     },
   });
 
   const create = useMutation({
     mutationFn: async (name: string) => {
-      await axios.post("http://127.0.0.1:8000/api/workspaces", { name });
+      await axios.post("/api/workspaces", { name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -33,7 +33,7 @@ export default function useWorkspaces(): {
 
   const remove = useMutation({
     mutationFn: async (name: string) => {
-      await axios.delete("http://127.0.0.1:8000/api/workspaces", { data: { name } });
+      await axios.delete("/api/workspaces", { data: { name } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
