@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useNotificationContext } from "./useNotificationContext";
+import { useEffect } from "react";
 
 const QUERY_KEY = ["workspaces"];
 
@@ -10,6 +12,7 @@ export default function useWorkspaces(): {
   deleteWorkspace: (name: string) => void;
 } {
   const queryClient = useQueryClient();
+  const { showNotification } = useNotificationContext();
 
   const query = useQuery({
     queryKey: QUERY_KEY,
@@ -19,15 +22,32 @@ export default function useWorkspaces(): {
     },
   });
 
+  useEffect(() => {
+    if (query.isError) {
+      showNotification({
+        type: "error",
+        message: "Failed to load workspaces",
+      });
+    }
+  }, [query.isError]);
+
   const create = useMutation({
     mutationFn: async (name: string) => {
       await axios.post("/api/workspaces", { name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      showNotification({
+        type: "success",
+        message: "Workspace created successfully",
+      });
     },
-    onError: (error) => {
-      console.error("Error creating workspace:", error);
+    onError: (error: any) => {
+      showNotification({
+        type: "error",
+        message: error?.response?.data?.error ?? error.message,
+      });
+      console.log(error);
     },
   });
 
@@ -37,9 +57,16 @@ export default function useWorkspaces(): {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      showNotification({
+        type: "success",
+        message: "Workspace deleted successfully",
+      });
     },
-    onError: (error) => {
-      console.error("Error deleting workspace:", error);
+    onError: (error: any) => {
+      showNotification({
+        type: "error",
+        message: error?.response?.data?.error ?? error.message,
+      });
     },
   });
 

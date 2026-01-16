@@ -46,3 +46,8 @@ export interface Workspace {
 }
 
 export type TabName = 'settings' | 'generator' | 'benchmark' | 'results';
+
+export interface NotificationData {
+  type: 'success' | 'error';
+  message: string;
+}

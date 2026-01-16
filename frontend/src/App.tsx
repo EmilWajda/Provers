@@ -8,20 +8,15 @@ import BenchmarkView from "./components/Benchmark/BenchmarkView";
 import ResultsView from "./components/Results/ResultsView";
 import SettingsView from "./components/Settings/SettingsView";
 import useWorkspaces from "./hooks/useWorkspaces";
+import Notification from "./components/Notification";
 
 const App = () => {
   const { workspaces, isLoading, createWorkspace, deleteWorkspace } = useWorkspaces();
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabName>("settings");
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const activeWorkspace: Workspace | null = null;
-
-  const showNotification = (message: string, type: "success" | "error" = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
 
   const updateWorkspaceSettings = (settings: WorkspaceSettings) => {
     if (!activeWorkspaceId) return;
@@ -124,15 +119,7 @@ const App = () => {
       <main className="flex-1 overflow-auto bg-white shadow-inner m-2 rounded-xl border border-gray-200">
         {renderContent()}
       </main>
-      {notification && (
-        <div
-          className={`fixed top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl text-white font-medium ${
-            notification.type === "success" ? "bg-green-600" : "bg-red-600"
-          } z-50 transition-all animate-fade-in`}
-        >
-          {notification.message}
-        </div>
-      )}
+      <Notification />
     </div>
   );
 };
