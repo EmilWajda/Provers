@@ -1,3 +1,5 @@
+import aiofiles
+import json
 from os import path
 from quart import Quart, request
 from aiofiles import os as aos
@@ -55,4 +57,35 @@ async def delete_workspace():
     if not await aos.path.exists(workspace_path):
         return {"error": "Workspace does not exist."}, 400
     await _remove_directory(workspace_path)
+    return {}
+
+
+@app.route("/api/workspaces/<workspace>/settings")
+async def get_workspace_settings(workspace: str):
+    if not await aos.path.exists(path.join("workspaces", workspace)):
+        return {"error": "Workspace does not exist."}, 400
+    default_settings = {
+        "seed": None,
+        "timeout": 60,
+    }
+    settings_path = path.join("workspaces", workspace, "settings.json")
+    if await aos.path.exists(settings_path):
+        async with aiofiles.open(settings_path, "r") as f:
+            content = await f.read()
+            settings = json.loads(content)
+            if "seed" in settings and (settings["seed"] is None or isinstance(settings["seed"], int)):
+                default_settings["seed"] = settings["seed"]
+            if "timeout" in settings and isinstance(settings["timeout"], int):
+                default_settings["timeout"] = settings["timeout"]
+    return default_settings
+
+
+@app.route("/api/workspaces/<workspace>/settings", methods=["PUT"])
+async def update_workspace_settings(workspace: str):
+    if not await aos.path.exists(path.join("workspaces", workspace)):
+        return {"error": "Workspace does not exist."}, 400
+    data = await request.get_json()
+    settings_path = path.join("workspaces", workspace, "settings.json")
+    async with aiofiles.open(settings_path, "w") as f:
+        await f.write(json.dumps(data))
     return {}

@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useNotificationContext } from "./useNotificationContext";
 import { useEffect } from "react";
+import useMutationNotify from "./useMutationNotify";
 
 const QUERY_KEY = ["workspaces"];
 
@@ -11,7 +12,6 @@ export default function useWorkspaces(): {
   createWorkspace: (name: string) => void;
   deleteWorkspace: (name: string) => void;
 } {
-  const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
   const query = useQuery({
@@ -31,49 +31,26 @@ export default function useWorkspaces(): {
     }
   }, [query.isError]);
 
-  const create = useMutation({
+  const create = useMutationNotify({
     mutationFn: async (name: string) => {
       await axios.post("/api/workspaces", { name });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      showNotification({
-        type: "success",
-        message: "Workspace created successfully",
-      });
-    },
-    onError: (error: any) => {
-      showNotification({
-        type: "error",
-        message: error?.response?.data?.error ?? error.message,
-      });
-      console.log(error);
-    },
+    queryKey: QUERY_KEY,
+    successMessage: "Workspace created successfully",
   });
 
-  const remove = useMutation({
+  const remove = useMutationNotify({
     mutationFn: async (name: string) => {
       await axios.delete("/api/workspaces", { data: { name } });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      showNotification({
-        type: "success",
-        message: "Workspace deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      showNotification({
-        type: "error",
-        message: error?.response?.data?.error ?? error.message,
-      });
-    },
+    queryKey: QUERY_KEY,
+    successMessage: "Workspace deleted successfully",
   });
 
   return {
     workspaces: query.data || [],
     isLoading: query.isLoading,
-    createWorkspace: create.mutate,
-    deleteWorkspace: remove.mutate,
+    createWorkspace: create,
+    deleteWorkspace: remove,
   };
 }

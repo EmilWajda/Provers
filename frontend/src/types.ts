@@ -32,8 +32,7 @@ export interface Result {
 }
 
 export interface WorkspaceSettings {
-  seedMode: 'random' | 'custom';
-  customSeed?: number;
+  seed: number | null;
   timeout: number;
 }
 

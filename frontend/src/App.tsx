@@ -58,32 +58,22 @@ const App = () => {
       );
     }
 
-    return (
-      // TODO: readd views
-      <div className="flex items-center justify-center h-full text-green-400">
-        Selected: {activeWorkspace}, tab: {activeTab}
-      </div>
-    );
-
-    // switch (activeTab) {
-    //   case 'settings':
-    //     return (
-    //       <SettingsView
-    //         workspaceName={activeWorkspace.name}
-    //         settings={activeWorkspace.settings}
-    //         onSave={updateWorkspaceSettings}
-    //         onNotify={showNotification}
-    //       />
-    //     );
-    //   case 'generator':
-    //     return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
-    //   case 'benchmark':
-    //     return <BenchmarkView problems={activeWorkspace.problems} onSubmit={submitBenchmark} onNotify={showNotification} />;
-    //   case 'results':
-    //     return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
-    //   default:
-    //     return null;
-    // }
+    switch (activeTab) {
+      case 'settings':
+        return <SettingsView key={activeWorkspace} />;
+      // case 'generator':
+      //   return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
+      // case 'benchmark':
+      //   return <BenchmarkView problems={activeWorkspace.problems} onSubmit={submitBenchmark} onNotify={showNotification} />;
+      // case 'results':
+      //   return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
+      default:
+        return (
+          <div className="flex items-center justify-center h-full text-red-400">
+            Tab '{activeTab}' is not implemented yet.
+          </div>
+        );
+    }
   };
 
   return (
