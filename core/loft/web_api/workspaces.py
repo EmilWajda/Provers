@@ -1,0 +1,52 @@
+from quart import Quart, request
+from aiofiles import os as aos
+from os import path
+
+
+async def _remove_directory(dir_path: str) -> None:
+    """Recursively delete a directory and all its contents."""
+    for entry in await aos.listdir(dir_path):
+        full_path = path.join(dir_path, entry)
+        if await aos.path.isdir(full_path):
+            await _remove_directory(full_path)
+        else:
+            await aos.remove(full_path)
+    await aos.rmdir(dir_path)
+
+
+async def get_workspaces():
+    await aos.makedirs("workspaces", exist_ok=True)
+    workspaces = [
+        name for name in await aos.listdir("workspaces") if await aos.path.isdir(path.join("workspaces", name))
+    ]
+    return {"workspaces": workspaces}
+
+
+async def create_workspace():
+    data = await request.get_json()
+    workspace_name = data.get("name")
+    if not workspace_name:
+        return {"error": "Workspace name is required."}, 400
+    workspace_path = path.join("workspaces", workspace_name)
+    if await aos.path.exists(workspace_path):
+        return {"error": "Workspace already exists."}, 400
+    await aos.makedirs(workspace_path)
+    return {}
+
+
+async def delete_workspace():
+    data = await request.get_json()
+    workspace_name = data.get("name")
+    if not workspace_name:
+        return {"error": "Workspace name is required."}, 400
+    workspace_path = path.join("workspaces", workspace_name)
+    if not await aos.path.exists(workspace_path):
+        return {"error": "Workspace does not exist."}, 400
+    await _remove_directory(workspace_path)
+    return {}
+
+
+def register_workspace_routes(app: Quart) -> None:
+    app.route("/api/workspaces")(get_workspaces)
+    app.route("/api/workspaces", methods=["POST"])(create_workspace)
+    app.route("/api/workspaces", methods=["DELETE"])(delete_workspace)

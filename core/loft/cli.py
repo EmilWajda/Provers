@@ -54,8 +54,7 @@ def generate(workspace: str, seed: int | None, problem_name: str, params: dict) 
         print("Error in parameter conditions!")
         print(e)
         return
-    problem = generator.generate()
-    tptp_output = TPTPBuilder().build_tptp_str(problem)
+    tptp_output = TPTPBuilder().build_annotated_tptp_str(generator)
 
     problem_dir, suggested = generator.get_suggested_path()
     suggested += ".tptp"
