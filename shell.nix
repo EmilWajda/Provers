@@ -15,13 +15,5 @@ pkgs.mkShell {
   ]
   ++ core-deps;
 
-  shellHook = ''
-    cd frontend
-    if [ ! -d "node_modules" ]; then
-      npm install
-    fi
-    cd ..
-
-    export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}";
-  '';
+  RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
 }
