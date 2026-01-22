@@ -19,7 +19,7 @@ export interface Problem {
   seed: number;
 }
 
-export type ProblemFileList = { [filePath: string]: Problem };
+export type ProblemFileList = { [filePath: string]: Problem | null };
 
 export interface BenchmarkMetric {
   time: number;

@@ -59,12 +59,19 @@ const App = () => {
     }
 
     switch (activeTab) {
-      case 'settings':
+      case "settings":
         return <SettingsView key={activeWorkspace} />;
       // case 'generator':
       //   return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
-      // case 'benchmark':
-      //   return <BenchmarkView problems={activeWorkspace.problems} onSubmit={submitBenchmark} onNotify={showNotification} />;
+      case "benchmark":
+        return (
+          <BenchmarkView
+            key={activeWorkspace}
+            onSubmit={() => {
+              return;
+            }}
+          />
+        );
       // case 'results':
       //   return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
       default:

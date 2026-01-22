@@ -1,16 +1,18 @@
-import { useState } from 'react';
-import { BarChart, ChevronDown, ChevronRight, CheckSquare, Square, Play } from 'lucide-react';
-import type { Problem } from '../../types';
+import { useState } from "react";
+import { BarChart, ChevronDown, ChevronRight, CheckSquare, Square, Play } from "lucide-react";
+import type { Problem, ProblemFileList } from "../../types";
+import { useNotificationContext } from "../../hooks/useNotificationContext";
+import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { groupProblems, PrettyPrintParams, splitPath } from "../../utils";
 
-interface BenchmarkViewProps {
-  problems: Problem[];
-  onSubmit: (ids: string[], provers: string[]) => void;
-  onNotify: (message: string, type?: 'success' | 'error') => void;
-}
+const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) => {
+  const activeWorkspace = useActiveWorkspace().workspace;
+  const { showNotification } = useNotificationContext();
 
-const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => {
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
-  const [selectedProvers, setSelectedProvers] = useState<Set<string>>(new Set(['SPASS']));
+  const [selectedProvers, setSelectedProvers] = useState<Set<string>>(new Set());
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
 
   const toggleProblem = (id: string) => {
@@ -34,27 +36,53 @@ const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => 
     setExpandedTypes(newSet);
   };
 
-  const selectAllInType = (typeProblems: Problem[]) => {
+  const selectAllInType = (typeProblems: string[]) => {
     const newSet = new Set(selectedProblems);
-    const allSelected = typeProblems.every(p => newSet.has(p.id));
+    const allSelected = typeProblems.every((p) => newSet.has(p));
     for (const p of typeProblems) {
-      if (allSelected) newSet.delete(p.id);
-      else newSet.add(p.id);
+      if (allSelected) newSet.delete(p);
+      else newSet.add(p);
     }
     setSelectedProblems(newSet);
   };
 
+  const problems = useQuery({
+    queryFn: async (): Promise<ProblemFileList> => {
+      const response = await axios.get(`/api/workspaces/${activeWorkspace}/problems`);
+      return response.data.problems;
+    },
+    queryKey: ["problemFiles", activeWorkspace],
+  });
+
+  const provers = useQuery({
+    queryFn: async (): Promise<string[]> => {
+      const response = await axios.get(`/api/provers`);
+      return response.data.provers;
+    },
+    queryKey: ["provers"],
+    staleTime: Infinity, // prover list never changes
+  });
+
   const handleSubmit = () => {
-    if (selectedProblems.size === 0) return onNotify("Select at least one problem.", 'error');
-    if (selectedProvers.size === 0) return onNotify("Select at least one prover.", 'error');
-    onSubmit(Array.from(selectedProblems), Array.from(selectedProvers));
+    if (selectedProblems.size === 0) {
+      showNotification({
+        type: "error",
+        message: "Select at least one problem.",
+      });
+      return;
+    }
+    if (selectedProvers.size === 0) {
+      showNotification({
+        type: "error",
+        message: "Select at least one prover.",
+      });
+      return;
+    }
+    console.log(Array.from(selectedProblems), Array.from(selectedProvers));
   };
 
-  const groupedProblems: Record<string, Problem[]> = {
-    'Problem 1': problems.filter(p => p.type === 'Problem 1'),
-    'Problem 2': problems.filter(p => p.type === 'Problem 2'),
-    'Problem 3': problems.filter(p => p.type === 'Problem 3'),
-  };
+  const groupedProblems = groupProblems(problems.data ?? {});
+  const proversList = provers.data ?? [];
 
   return (
     <div className="p-8 h-full flex flex-col relative">
@@ -67,16 +95,24 @@ const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => 
         {Object.entries(groupedProblems).map(([type, typeProblems]) => (
           <div key={type} className="mb-4 bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
-              <button 
+              <button
                 type="button"
-                className="flex items-center gap-2 flex-1 text-left bg-transparent border-none p-0 cursor-pointer" 
+                className="flex items-center gap-2 flex-1 text-left bg-transparent border-none p-0 cursor-pointer"
                 onClick={() => toggleTypeExpand(type)}
               >
                 {expandedTypes.has(type) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <span className="font-semibold text-gray-700">{type}</span>
-                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">{typeProblems.length}</span>
+                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+                  {typeProblems.length}
+                </span>
               </button>
-              <button onClick={(e) => { e.stopPropagation(); selectAllInType(typeProblems); }} className="text-xs text-blue-600 hover:underline px-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectAllInType(typeProblems.map((p) => p.fullPath));
+                }}
+                className="text-xs text-blue-600 hover:underline px-2"
+              >
                 Select/Deselect All
               </button>
             </div>
@@ -84,19 +120,27 @@ const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => 
             {expandedTypes.has(type) && (
               <div className="p-2 space-y-1 bg-white border-t border-gray-100">
                 {typeProblems.length === 0 && <p className="text-sm text-gray-400 p-2">No problems.</p>}
-                {typeProblems.map(problem => {
-                  const isSelected = selectedProblems.has(problem.id);
+                {typeProblems.map((p) => {
+                  const isSelected = selectedProblems.has(p.fullPath);
                   return (
-                    <button 
-                      key={problem.id}
-                      onClick={() => toggleProblem(problem.id)}
+                    <button
+                      key={p.fullPath}
+                      onClick={() => toggleProblem(p.fullPath)}
                       className={`w-full flex items-center gap-3 p-2 rounded cursor-pointer transition-colors text-left outline-none focus:ring-2 focus:ring-blue-500 ${
-                        isSelected ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'
+                        isSelected ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50 border border-transparent"
                       }`}
                     >
-                      {isSelected ? <CheckSquare className="text-blue-600 w-5 h-5" /> : <Square className="text-gray-400 w-5 h-5" />}
-                      <span className={`${isSelected ? 'text-blue-900 font-medium' : 'text-gray-700'}`}>{problem.name}</span>
-                      <span className="text-xs text-gray-400 ml-auto">Clauses: {problem.params.clauses}, Lengths: [{problem.params.lengths.join(', ')}]</span>
+                      {isSelected ? (
+                        <CheckSquare className="text-blue-600 w-5 h-5" />
+                      ) : (
+                        <Square className="text-gray-400 w-5 h-5" />
+                      )}
+                      <span className={`${isSelected ? "text-blue-900 font-medium" : "text-gray-700"}`}>
+                        {p.fileName}
+                      </span>
+                      <span className="text-xs text-gray-400 ml-auto text-right">
+                        <PrettyPrintParams problemData={p.problem} />
+                      </span>
                     </button>
                   );
                 })}
@@ -109,19 +153,14 @@ const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => 
       <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Select Provers</h3>
         <div className="flex flex-wrap gap-4 mb-6">
-          {['SPASS', 'CVC5', 'Vampire'].map(prover => {
+          {proversList.map((prover) => {
             const isChecked = selectedProvers.has(prover);
             return (
               <label key={prover} className="flex items-center gap-2 cursor-pointer select-none">
-                <input 
-                  type="checkbox"
-                  className="sr-only"
-                  checked={isChecked}
-                  onChange={() => toggleProver(prover)}
-                />
-                <div 
+                <input type="checkbox" className="sr-only" checked={isChecked} onChange={() => toggleProver(prover)} />
+                <div
                   className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                    isChecked ? 'bg-purple-600 border-purple-600' : 'border-gray-300 bg-white'
+                    isChecked ? "bg-purple-600 border-purple-600" : "border-gray-300 bg-white"
                   }`}
                   aria-hidden="true"
                 >
@@ -133,7 +172,7 @@ const BenchmarkView = ({ problems, onSubmit, onNotify }: BenchmarkViewProps) => 
           })}
         </div>
 
-        <button 
+        <button
           onClick={handleSubmit}
           disabled={selectedProblems.size === 0 || selectedProvers.size === 0}
           className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
