@@ -1,21 +1,30 @@
-export type ProblemType = 'Problem 1' | 'Problem 2' | 'Problem 3';
-
-export interface ProblemParams {
-  clauses: number;
-  lengths: number[];
+export interface ParamSpec {
+  checks: { [check: string]: any };
+  description: string;
+  type: "integer" | "float" | "boolean" | "choice" | "integer_list";
 }
+
+export type ProblemParams = { [paramName: string]: any };
+
+export interface ProblemType {
+  params: { [param: string]: ParamSpec };
+  presets: { [preset: string]: ProblemParams };
+}
+
+export type ProblemTypeList = { [generator: string]: ProblemType };
 
 export interface Problem {
-  id: string;
-  name: string;
-  type: ProblemType;
   params: ProblemParams;
+  problem: string; // ProblemType name
+  seed: number;
 }
+
+export type ProblemFileList = { [filePath: string]: Problem };
 
 export interface BenchmarkMetric {
   time: number;
   memory: number;
-  status: 'SAT' | 'UNSAT';
+  status: "SAT" | "UNSAT";
 }
 
 export interface ProblemResult {
@@ -44,9 +53,9 @@ export interface Workspace {
   settings: WorkspaceSettings;
 }
 
-export type TabName = 'settings' | 'generator' | 'benchmark' | 'results';
+export type TabName = "settings" | "generator" | "benchmark" | "results";
 
 export interface NotificationData {
-  type: 'success' | 'error';
+  type: "success" | "error";
   message: string;
 }
