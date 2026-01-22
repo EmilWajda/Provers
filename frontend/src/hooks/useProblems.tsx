@@ -3,34 +3,26 @@ import axios from "axios";
 import { useNotificationContext } from "./useNotificationContext";
 import { useEffect } from "react";
 import useMutationNotify from "./useMutationNotify";
-import type { Problem } from "../types";
+import type { Problem, ProblemFileList } from "../types";
 import { useActiveWorkspace } from "./useActiveWorkspace";
 
-export type ProblemWithId = Problem & { id: string };
-
-const queryKey = (workspace: string) => ["problems", workspace];
+const queryKey = (workspace: string | null) => ["problems", workspace || ""];
 
 export default function useProblems(): {
-  problems: ProblemWithId[];
+  problems: ProblemFileList;
   isLoading: boolean;
-  generateProblem: (variables: { problem: string; params: any; seed?: number }) => void;
-  deleteProblem: (id: string) => void;
+  generateProblem: (problem: Problem) => void;
+  deleteProblem: (path: string) => void;
 } {
   const { showNotification } = useNotificationContext();
   const { workspace } = useActiveWorkspace();
 
   const query = useQuery({
-    queryKey: queryKey(workspace || ""),
-    queryFn: async (): Promise<ProblemWithId[]> => {
-      if (!workspace) return [];
+    queryKey: queryKey(workspace),
+    queryFn: async (): Promise<ProblemFileList> => {
       const response = await axios.get(`/api/workspaces/${workspace}/problems`);
-      const problemsMap = response.data.problems;
-      return Object.entries(problemsMap).map(([path, data]) => ({
-        ...(data as Problem),
-        id: path,
-      }));
+      return response.data.problems;
     },
-    enabled: !!workspace,
   });
 
   useEffect(() => {
@@ -43,25 +35,25 @@ export default function useProblems(): {
   }, [query.isError]);
 
   const generate = useMutationNotify({
-    mutationFn: async (variables: { problem: string; params: any; seed?: number }) => {
+    mutationFn: async (problem: Problem) => {
       if (!workspace) throw new Error("No active workspace");
-      await axios.post(`/api/workspaces/${workspace}/problems`, variables);
+      await axios.post(`/api/workspaces/${workspace}/problems`, problem);
     },
-    queryKey: queryKey(workspace || ""),
+    queryKey: queryKey(workspace),
     successMessage: "Problem generated successfully",
   });
 
   const remove = useMutationNotify({
-    mutationFn: async (id: string) => {
+    mutationFn: async (path: string) => {
       if (!workspace) throw new Error("No active workspace");
-      await axios.delete(`/api/workspaces/${workspace}/problems`, { data: { path: id } });
+      await axios.delete(`/api/workspaces/${workspace}/problems`, { data: { path } });
     },
-    queryKey: queryKey(workspace || ""),
+    queryKey: queryKey(workspace),
     successMessage: "Problem deleted successfully",
   });
 
   return {
-    problems: query.data || [],
+    problems: query.data || {},
     isLoading: query.isLoading,
     generateProblem: generate,
     deleteProblem: remove,

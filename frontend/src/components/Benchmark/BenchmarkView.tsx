@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { BarChart, ChevronDown, ChevronRight, CheckSquare, Square, Play } from "lucide-react";
-import type { Problem, ProblemFileList } from "../../types";
 import { useNotificationContext } from "../../hooks/useNotificationContext";
-import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { groupProblems, PrettyPrintParams, splitPath } from "../../utils";
+import { groupProblems, PrettyPrintParams } from "../../utils";
+import useProblems from "../../hooks/useProblems";
 
 const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) => {
-  const activeWorkspace = useActiveWorkspace().workspace;
   const { showNotification } = useNotificationContext();
 
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
@@ -46,13 +44,7 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
     setSelectedProblems(newSet);
   };
 
-  const problems = useQuery({
-    queryFn: async (): Promise<ProblemFileList> => {
-      const response = await axios.get(`/api/workspaces/${activeWorkspace}/problems`);
-      return response.data.problems;
-    },
-    queryKey: ["problemFiles", activeWorkspace],
-  });
+  const { problems } = useProblems();
 
   const provers = useQuery({
     queryFn: async (): Promise<string[]> => {
@@ -81,7 +73,7 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
     console.log(Array.from(selectedProblems), Array.from(selectedProvers));
   };
 
-  const groupedProblems = groupProblems(problems.data ?? {});
+  const groupedProblems = groupProblems(problems);
   const proversList = provers.data ?? [];
 
   return (

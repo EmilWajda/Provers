@@ -6,7 +6,9 @@ _ALL_PROVERS: list[Prover] = [
     Prover("spass", basic_result_parser("completion found", "proof found")),
     Prover("e", basic_result_parser("satisfiable", "unsatisfiable")),
     Prover("iprover", basic_result_parser("satisfiable", "unsatisfiable"), "cnf"),
-    Prover("prover9", basic_result_parser("theorem proved", "search failed"), "ladr"),  # TODO: verify
+    Prover(
+        "prover9", basic_result_parser("theorem proved", "search failed"), "ladr"
+    ),  # TODO: fix not detecting satisfiable files correctly
     Prover("z3", basic_result_parser("sat", "unsat"), "smt2"),
     Prover("cvc4", basic_result_parser("satisfiable", "unsatisfiable")),
     Prover("cvc5", basic_result_parser("sat", "unsat"), "smt2"),

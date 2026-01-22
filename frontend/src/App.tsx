@@ -61,11 +61,8 @@ const App = () => {
     switch (activeTab) {
       case "settings":
         return <SettingsView key={activeWorkspace} />;
-      // case 'generator':
-      //   return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
-      case 'generator':
-        return <GeneratorView />;
-        
+      case "generator":
+        return <GeneratorView key={activeWorkspace} />;
       case "benchmark":
         return (
           <BenchmarkView
