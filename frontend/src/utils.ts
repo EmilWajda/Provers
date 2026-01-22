@@ -10,3 +10,10 @@ export function prettyPrintParams({ problem, params, seed }: Problem): string {
     .join(", ");
   return `Problem ${problem}\n${paramsFormatted}\nSeed: ${seed}`;
 }
+
+export function splitPath(path: string): { directory: string; fileName: string } {
+  const parts = path.split("/");
+  const fileName = parts.pop() || "";
+  const directory = parts.join("/");
+  return { directory, fileName };
+}
