@@ -24,7 +24,11 @@ class Problem8(Generator):
         "lambda": StandardParams.LAMBDA_OR_NONE.value,
         "lengths": StandardParams.LENGTHS_OR_NONE.value,
     }
-    presets = {}
+    presets = {
+        "Contradictory": {"clauses": 50, "poisson": True, "mode": "contradictory", "lambda": 3.0, "lengths": []},
+        "Subcontrary": {"clauses": 50, "poisson": True, "mode": "subcontrary", "lambda": 3.0, "lengths": []},
+        "Subalternated": {"clauses": 50, "poisson": True, "mode": "subalternated", "lambda": 3.0, "lengths": []},
+    }
 
     def validate_extra(self) -> str | None:
         poisson: bool = bool(self.params.get("poisson"))  # type: ignore

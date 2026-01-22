@@ -56,6 +56,13 @@ class Generator(ABC):
             if key not in self.params:
                 raise ValueError(f"Missing required parameter '{key}' in params.")
             value = self.params[key]
+
+            try:
+                value = expected_type.coerce(value)
+                self.params[key] = value
+            except (ValueError, TypeError):
+                pass
+
             if not expected_type.validate(value):
                 checks = expected_type.get_checks()
                 checks_str = ", ".join(f"{k}={v}" for k, v in checks.items() if v is not None) if checks else "any"

@@ -1,20 +1,16 @@
 import { useState } from 'react';
 import { Zap, Plus } from 'lucide-react';
-import type { Problem, ProblemType, ProblemParams } from '../../types';
+import type { ProblemParams } from '../../types';
 import CreateProblemModal from './CreateProblemModal';
 import ProblemList from './ProblemList';
+import useProblems from '../../hooks/useProblems';
 
-interface GeneratorViewProps {
-  problems: Problem[];
-  onAddProblem: (type: ProblemType, params: ProblemParams) => void;
-  onDeleteProblem: (id: string) => void;
-}
-
-const GeneratorView = ({ problems, onAddProblem, onDeleteProblem }: GeneratorViewProps) => {
+const GeneratorView = () => {
+  const { problems, generateProblem, deleteProblem, isLoading } = useProblems();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleGenerate = (type: ProblemType, params: ProblemParams) => {
-    onAddProblem(type, params);
+  const handleGenerate = (type: string, params: ProblemParams) => {
+    generateProblem({ problem: type, params });
     setIsModalOpen(false);
   };
 
@@ -32,7 +28,7 @@ const GeneratorView = ({ problems, onAddProblem, onDeleteProblem }: GeneratorVie
         </button>
       </div>
 
-      <ProblemList problems={problems} onDeleteProblem={onDeleteProblem} />
+      <ProblemList problems={problems} onDeleteProblem={deleteProblem} />
 
       {isModalOpen && (
         <CreateProblemModal 

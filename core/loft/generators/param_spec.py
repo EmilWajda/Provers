@@ -21,6 +21,9 @@ class ParamSpec(ABC):
     @abstractmethod
     def add_cli_argument(self, name: str, parser: ArgumentParser) -> None: ...
 
+    def coerce(self, value: Any) -> Any:
+        return value
+
     def get_schema(self) -> dict[str, Any]:
         return {
             "type": self.name,
@@ -36,6 +39,8 @@ class Integer(ParamSpec):
     max_value: int | None = None
 
     def validate(self, value: Any) -> bool:
+        if isinstance(value, float) and value.is_integer():
+            value = int(value)
         if not isinstance(value, int):
             return False
         if self.min_value is not None and value < self.min_value:
@@ -44,9 +49,12 @@ class Integer(ParamSpec):
             return False
         return True
 
+    def coerce(self, value: Any) -> int:
+        return int(value)
+
     def get_checks(self) -> dict[str, Any]:
         return {"min": self.min_value, "max": self.max_value}
-    
+
     def sanitize_value(self, value: Any) -> str:
         return str(value)
 
@@ -61,6 +69,8 @@ class Float(ParamSpec):
     max_value: float | None = None
 
     def validate(self, value: Any) -> bool:
+        if isinstance(value, int):
+            value = float(value)
         if not isinstance(value, float):
             return False
         if self.min_value is not None and value < self.min_value:
@@ -69,9 +79,12 @@ class Float(ParamSpec):
             return False
         return True
 
+    def coerce(self, value: Any) -> float:
+        return float(value)
+
     def get_checks(self) -> dict[str, Any]:
         return {"min": self.min_value, "max": self.max_value}
-    
+
     def sanitize_value(self, value: Any) -> str:
         return f"{value:.2f}"
 
@@ -85,6 +98,14 @@ class Boolean(ParamSpec):
 
     def validate(self, value: Any) -> bool:
         return isinstance(value, bool)
+
+    def coerce(self, value: Any) -> bool:
+        if isinstance(value, str):
+            if value.lower() == "true":
+                return True
+            if value.lower() == "false":
+                return False
+        return bool(value)
 
     def get_checks(self) -> dict[str, Any]:
         return {}
@@ -123,18 +144,24 @@ class IntegerList(ParamSpec):
     max_value: int | None = None
 
     def validate(self, value: Any) -> bool:
-        if not isinstance(value, list) or not all(isinstance(v, int) for v in value):
+        if not isinstance(value, list) or not all(
+            (isinstance(v, int) or (isinstance(v, float) and v.is_integer())) for v in value
+        ):
             return False
         if self.min_length is not None and len(value) < self.min_length:
             return False
         if self.max_length is not None and len(value) > self.max_length:
             return False
         for v in value:
+            # We assume they are ints or castable to ints
             if self.min_value is not None and v < self.min_value:
                 return False
             if self.max_value is not None and v > self.max_value:
                 return False
         return True
+
+    def coerce(self, value: Any) -> list[int]:
+        return [int(v) for v in value]
 
     def get_checks(self) -> dict[str, Any]:
         return {

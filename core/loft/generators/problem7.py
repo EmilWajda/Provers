@@ -28,7 +28,10 @@ class Problem7(Generator):
         "lambda": StandardParams.LAMBDA_OR_NONE.value,
         "lengths": StandardParams.LENGTHS_OR_NONE.value,
     }
-    presets = {}
+    presets = {
+        "Default": {"clauses": 50, "poisson": True, "conjunction": False, "lambda": 5.0, "lengths": []},
+        "Nested": {"clauses": 50, "poisson": False, "conjunction": True, "lambda": 0, "lengths": [3, 4, 5]},
+    }
 
     def validate_extra(self) -> str | None:
         poisson: bool = bool(self.params.get("poisson"))  # type: ignore

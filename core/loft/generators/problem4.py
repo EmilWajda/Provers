@@ -13,7 +13,11 @@ class Problem4(Generator):
         "clauses": StandardParams.CLAUSES.value,
         "length": StandardParams.LENGTH.value,
     }
-    presets = {}
+    presets = {
+        "Default": {"clauses": 50, "length": 4},
+        "Short": {"clauses": 30, "length": 3},
+        "Long": {"clauses": 100, "length": 5},
+    }
 
     def validate_extra(self) -> str | None:
         return None

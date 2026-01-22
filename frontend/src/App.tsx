@@ -63,6 +63,9 @@ const App = () => {
         return <SettingsView key={activeWorkspace} />;
       // case 'generator':
       //   return <GeneratorView problems={activeWorkspace.problems} onAddProblem={addProblem} onDeleteProblem={deleteProblem} />;
+      case 'generator':
+        return <GeneratorView />;
+        
       case "benchmark":
         return (
           <BenchmarkView

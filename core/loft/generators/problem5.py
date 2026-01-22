@@ -14,7 +14,11 @@ class Problem5(Generator):
         "lengths": StandardParams.LENGTHS.value,
         "distribution": StandardParams.DISTRIBUTION.value,
     }
-    presets = {}
+    presets = {
+        "Default": {"clauses": 50, "lengths": [2, 3, 4, 6, 8, 10], "distribution": "even"},
+        "Tiny Short": {"clauses": 50, "lengths": [2, 3, 4], "distribution": "tiny_short"},
+        "Tiny Long": {"clauses": 50, "lengths": [2, 3, 4], "distribution": "tiny_long"},
+    }
 
     def validate_extra(self) -> str | None:
         total_clauses: int = self.params.get("clauses")  # type: ignore
@@ -31,7 +35,7 @@ class Problem5(Generator):
         num_atoms = max(1, total_clauses // 2)
         m = len(clause_lengths)
 
-        counts: List[int] = [0]
+        counts: List[int] = [0] * m
 
         if distribution == "even":
             base = total_clauses // m

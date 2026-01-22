@@ -14,7 +14,10 @@ class Problem3(Generator):  # TODO: verify with description
         "lengths": StandardParams.LENGTHS.value,
         "ratio": StandardParams.RATIO.value,
     }
-    presets = {}
+    presets = {
+        "Default": {"clauses": 50, "lengths": [2, 3, 4, 6, 8, 10], "ratio": 1},
+        "High Ratio": {"clauses": 50, "lengths": [2, 3, 4], "ratio": 2},
+    }
 
     def validate_extra(self) -> str | None:
         return None
@@ -25,13 +28,15 @@ class Problem3(Generator):  # TODO: verify with description
         ratio: int = self.params.get("ratio")  # type: ignore
 
         # liczba atomów zależna od współczynnika ratio
-        num_atoms = total_clauses * ratio
+        num_atoms = int(total_clauses * ratio)
         atom_names = [f"var{i+1}" for i in range(num_atoms)]
 
-        # filtrujemy długości do tych, które są <= ratio
-        allowed_lengths = [l for l in clause_lengths if l <= ratio]
+        # filtrujemy długości do tych, które są <= liczba dostępnych atomów
+        allowed_lengths = [l for l in clause_lengths if l <= num_atoms]
         if not allowed_lengths:
-            raise ValueError("Brak dopuszczalnych długości po filtrze 'ratio'. Zmniejsz 'lengths' lub zwiększ 'ratio'.")
+            raise ValueError(
+                f"Brak dopuszczalnych długości po filtrze. Zmniejsz 'lengths' lub zwiększ 'ratio' (liczba atomów: {num_atoms})."
+            )
 
         # rozdzielamy klauzule równomiernie po dozwolonych długościach
         num_per_length = total_clauses // len(allowed_lengths)
