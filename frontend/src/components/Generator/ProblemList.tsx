@@ -42,7 +42,7 @@ const ProblemList = ({ problems, onDeleteProblem }: ProblemListProps) => {
                       </span>
                       <button
                         onClick={() => onDeleteProblem(problem.fullPath)}
-                        className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-red-300 hover:text-red-600 transition-colors p-2 mr-2"
                         title="Delete Problem"
                       >
                         <Trash2 size={16} />

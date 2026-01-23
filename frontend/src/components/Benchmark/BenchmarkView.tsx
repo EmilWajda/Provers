@@ -70,7 +70,9 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
       });
       return;
     }
+    // TODO: submit benchmark
     console.log(Array.from(selectedProblems), Array.from(selectedProvers));
+    onSubmit("");
   };
 
   const groupedProblems = groupProblems(problems);

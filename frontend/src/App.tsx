@@ -1,11 +1,10 @@
 import { useState } from "react";
 import "./App.css";
-import type { Workspace, Problem, Result, ProblemType, TabName, WorkspaceSettings, ProblemParams } from "./types";
+import type { TabName } from "./types";
 
 import Sidebar from "./components/Sidebar/Sidebar";
 import GeneratorView from "./components/Generator/GeneratorView";
 import BenchmarkView from "./components/Benchmark/BenchmarkView";
-import ResultsView from "./components/Results/ResultsView";
 import SettingsView from "./components/Settings/SettingsView";
 import useWorkspaces from "./hooks/useWorkspaces";
 import Notification from "./components/Notification";
@@ -21,7 +20,7 @@ const App = () => {
   //   if (!activeWorkspaceId) return;
   //   const currentWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
   //   if (!currentWorkspace) return;
-
+  if (activeResultId) console.log("Viewing result:", activeResultId);
   //   const detailedResults = selectedProblemIds.map(id => {
   //     const problem = currentWorkspace.problems.find(p => p.id === id);
   //     const problemStatus = Math.random() > 0.5 ? 'SAT' : 'UNSAT';
