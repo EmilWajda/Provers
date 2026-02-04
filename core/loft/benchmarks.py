@@ -1,7 +1,6 @@
 import asyncio
 import aiofiles
 from os import path
-from quart import Websocket
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Callable, Awaitable
@@ -45,7 +44,7 @@ class BenchmarkResult:
 class BenchmarkOrchestrator:
     workspace: str
     queues: dict[BenchmarkResult, asyncio.Queue[BenchmarkCell]] = field(default_factory=dict)
-    readers: dict[BenchmarkResult, list[Websocket]] = field(default_factory=dict)
+    readers: dict[BenchmarkResult, list[asyncio.Queue[dict | None]]] = field(default_factory=dict)
     tasks: set[asyncio.Task] = field(default_factory=set)
 
     async def start_benchmark(self, problems: list[str], provers: list[str], timeout: int) -> BenchmarkResult:
@@ -60,34 +59,33 @@ class BenchmarkOrchestrator:
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
         return benchmark
+    
+    def get_ongoing(self, timestamp: str) -> BenchmarkResult | None:
+        for benchmark in self.queues.keys():
+            if benchmark.timestamp.isoformat() == timestamp:
+                return benchmark
+        return None
 
     async def run_benchmark(self, benchmark: BenchmarkResult, timeout: int) -> None:
         queue = self.queues[benchmark]
         while not queue.empty():
             cell = await queue.get()
-            await self._for_all_readers(benchmark, lambda r: r.send_json(cell.to_dict()))
+            for reader in self.readers[benchmark]:
+                await reader.put(cell.to_dict())
             prover = KNOWN_PROVERS[cell.prover]
             result, stats = await prover.run_on_problem(self.workspace, cell.problem, timeout=timeout)
             cell.result = result
             cell.stats = stats
             benchmark.filled_cells.append(cell)
-            await self._for_all_readers(benchmark, lambda r: r.send_json(cell.to_dict()))
-        await self._for_all_readers(benchmark, lambda r: r.close(1000))
+            for reader in self.readers[benchmark]:
+                await reader.put(cell.to_dict())
+        for reader in self.readers[benchmark]:
+            await reader.put(None)
         del self.queues[benchmark]
         del self.readers[benchmark]
         await self._save_result(benchmark)
 
-    async def _for_all_readers(self, benchmark: BenchmarkResult, fn: Callable[[Websocket], Awaitable[None]]) -> None:
-        to_remove = []
-        for reader in self.readers[benchmark]:
-            try:
-                await fn(reader)
-            except asyncio.CancelledError:
-                to_remove.append(reader)
-        for reader in to_remove:
-            self.readers[benchmark].remove(reader)
-
     async def _save_result(self, benchmark: BenchmarkResult) -> None:
-        result_path = path.join(self.workspace, "results", f"benchmark_{benchmark.timestamp.isoformat()}.json")
+        result_path = path.join(self.workspace, "results", f"{benchmark.timestamp.isoformat()}.json")
         async with aiofiles.open(result_path, "w") as f:
             await f.write(str(benchmark.to_dict()))
