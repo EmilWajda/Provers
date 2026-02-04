@@ -4,6 +4,7 @@ from os import path
 from .workspaces import register_workspace_routes
 from .settings import register_settings_routes
 from .problems import register_problem_routes
+from .results import register_results_routes
 from ..provers import KNOWN_PROVERS
 
 
@@ -25,3 +26,4 @@ def get_provers():
 register_workspace_routes(app)
 register_settings_routes(app)
 register_problem_routes(app)
+register_results_routes(app)

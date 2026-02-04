@@ -52,3 +52,10 @@ class RunStats:
         real_time = _parse_real_time(real_time_line.split(": ")[-1])
         peak_memory = int(peak_memory_line.split(": ")[-1])
         return cls(system_time, real_time, peak_memory)
+
+    def to_dict(self) -> dict:
+        return {
+            "system_time": self.system_time,
+            "real_time": self.real_time,
+            "peak_memory": self.peak_memory,
+        }

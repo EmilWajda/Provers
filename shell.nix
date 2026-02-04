@@ -12,6 +12,9 @@ pkgs.mkShell {
     pkgs.cargo
     pkgs.rustc
     pkgs.clippy
+    (pkgs.rustfmt.override {
+      asNightly = true;
+    })
   ]
   ++ core-deps;
 

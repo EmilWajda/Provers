@@ -1,0 +1,93 @@
+import asyncio
+import aiofiles
+from os import path
+from quart import Websocket
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Callable, Awaitable
+from .provers import KNOWN_PROVERS
+from .provers.run_output import RunResult, RunStats
+
+
+@dataclass
+class BenchmarkCell:
+    problem: str
+    prover: str
+    result: RunResult | None = None  # None for ongoing benchmark
+    stats: RunStats | None = None
+
+    def to_dict(self) -> dict:
+        return {
+            "problem": self.problem,
+            "prover": self.prover,
+            "result": self.result.value if self.result else None,
+            "stats": self.stats.to_dict() if self.stats else None,
+        }
+
+
+@dataclass(unsafe_hash=True)
+class BenchmarkResult:
+    problems: list[str] = field(hash=False)
+    provers: list[str] = field(hash=False)
+    timestamp: datetime = field(default_factory=datetime.now)
+    filled_cells: list[BenchmarkCell] = field(default_factory=list, hash=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "problems": self.problems,
+            "provers": self.provers,
+            "timestamp": self.timestamp.isoformat(),
+            "filled_cells": [cell.to_dict() for cell in self.filled_cells],
+        }
+
+
+@dataclass
+class BenchmarkOrchestrator:
+    workspace: str
+    queues: dict[BenchmarkResult, asyncio.Queue[BenchmarkCell]] = field(default_factory=dict)
+    readers: dict[BenchmarkResult, list[Websocket]] = field(default_factory=dict)
+    tasks: set[asyncio.Task] = field(default_factory=set)
+
+    async def start_benchmark(self, problems: list[str], provers: list[str], timeout: int) -> BenchmarkResult:
+        benchmark = BenchmarkResult(problems, provers)
+        queue = asyncio.Queue()
+        for problem in problems:
+            for prover in provers:
+                await queue.put(BenchmarkCell(problem, prover))
+        self.queues[benchmark] = queue
+        self.readers[benchmark] = []
+        task = asyncio.create_task(self.run_benchmark(benchmark, timeout))
+        self.tasks.add(task)
+        task.add_done_callback(self.tasks.discard)
+        return benchmark
+
+    async def run_benchmark(self, benchmark: BenchmarkResult, timeout: int) -> None:
+        queue = self.queues[benchmark]
+        while not queue.empty():
+            cell = await queue.get()
+            await self._for_all_readers(benchmark, lambda r: r.send_json(cell.to_dict()))
+            prover = KNOWN_PROVERS[cell.prover]
+            result, stats = await prover.run_on_problem(self.workspace, cell.problem, timeout=timeout)
+            cell.result = result
+            cell.stats = stats
+            benchmark.filled_cells.append(cell)
+            await self._for_all_readers(benchmark, lambda r: r.send_json(cell.to_dict()))
+        await self._for_all_readers(benchmark, lambda r: r.close(1000))
+        del self.queues[benchmark]
+        del self.readers[benchmark]
+        await self._save_result(benchmark)
+
+    async def _for_all_readers(self, benchmark: BenchmarkResult, fn: Callable[[Websocket], Awaitable[None]]) -> None:
+        to_remove = []
+        for reader in self.readers[benchmark]:
+            try:
+                await fn(reader)
+            except asyncio.CancelledError:
+                to_remove.append(reader)
+        for reader in to_remove:
+            self.readers[benchmark].remove(reader)
+
+    async def _save_result(self, benchmark: BenchmarkResult) -> None:
+        result_path = path.join(self.workspace, "results", f"benchmark_{benchmark.timestamp.isoformat()}.json")
+        async with aiofiles.open(result_path, "w") as f:
+            await f.write(str(benchmark.to_dict()))
