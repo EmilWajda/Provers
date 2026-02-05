@@ -39,7 +39,7 @@ async def create_benchmark(workspace: str):
         orchestrators[workspace] = BenchmarkOrchestrator(path.join("workspaces", workspace))
     orchestrator = orchestrators[workspace]
     benchmark = await orchestrator.start_benchmark(problems, provers, timeout)
-    return {"benchmark": benchmark.timestamp.isoformat()}
+    return {"benchmark": int(benchmark.timestamp.timestamp())}
 
 
 async def benchmark_websocket(workspace: str):

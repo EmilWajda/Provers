@@ -64,7 +64,7 @@ class BenchmarkOrchestrator:
 
     def get_ongoing(self, timestamp: str) -> BenchmarkResult | None:
         for benchmark in self.queues.keys():
-            if benchmark.timestamp.isoformat() == timestamp:
+            if str(benchmark.timestamp.timestamp()).startswith(timestamp):
                 return benchmark
         return None
 
@@ -90,7 +90,7 @@ class BenchmarkOrchestrator:
     async def _save_result(self, benchmark: BenchmarkResult) -> None:
         results_dir = path.join(self.workspace, "results")
         await makedirs(results_dir, exist_ok=True)
-        result_path = path.join(results_dir, f"{benchmark.timestamp.isoformat()}.json")
+        result_path = path.join(results_dir, f"{int(benchmark.timestamp.timestamp())}.json")
         async with aiofiles.open(result_path, "w") as f:
             json_str = json.dumps(benchmark.to_dict(), indent=4, ensure_ascii=False)
             await f.write(json_str)
