@@ -4,8 +4,7 @@ import json
 from os import path
 from aiofiles.os import makedirs
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Callable, Awaitable
+from datetime import datetime, UTC
 from .provers import KNOWN_PROVERS
 from .provers.run_output import RunResult, RunStats
 
@@ -30,7 +29,7 @@ class BenchmarkCell:
 class BenchmarkResult:
     problems: list[str] = field(hash=False)
     provers: list[str] = field(hash=False)
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     filled_cells: list[BenchmarkCell] = field(default_factory=list, hash=False)
 
     def to_dict(self) -> dict:

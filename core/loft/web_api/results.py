@@ -42,6 +42,13 @@ async def create_benchmark(workspace: str):
     return {"benchmark": int(benchmark.timestamp.timestamp())}
 
 
+async def _send_all_previous_cells(benchmark: dict) -> None:
+    filled_cells = benchmark.pop("filled_cells", [])
+    await websocket.send_json(benchmark)
+    for cell_dict in filled_cells:
+        await websocket.send_json(cell_dict)
+
+
 async def benchmark_websocket(workspace: str):
     timestamp = websocket.args.get("benchmark") or ""
     if workspace in orchestrators:
@@ -49,8 +56,7 @@ async def benchmark_websocket(workspace: str):
         benchmark = orchestrator.get_ongoing(timestamp)
         if benchmark:
             benchmark_dict = benchmark.to_dict()
-            del benchmark_dict["filled_cells"]
-            await websocket.send_json(benchmark_dict)
+            await _send_all_previous_cells(benchmark_dict)
             queue: asyncio.Queue[dict | None] = asyncio.Queue()
             orchestrator.readers[benchmark].append(queue)
             try:
@@ -67,10 +73,7 @@ async def benchmark_websocket(workspace: str):
         async with aiofiles.open(possible_path, "r") as f:
             content = await f.read()
             benchmark_dict: dict = json.loads(content)
-            filled_cells = benchmark_dict.pop("filled_cells", [])
-            await websocket.send_json(benchmark_dict)
-            for cell_dict in filled_cells:
-                await websocket.send_json(cell_dict)
+            await _send_all_previous_cells(benchmark_dict)
     return {"error": "File not found."}, 404
 
 

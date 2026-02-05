@@ -34,8 +34,8 @@ export class ResultSummary {
     this.filePath = filePath;
   }
 
-  get id() {
-    return this.filePath || this.timestamp.toISOString();
+  get id(): string {
+    return this.filePath || Math.floor(this.timestamp.getTime() / 1000).toString();
   }
 }
 
@@ -48,7 +48,7 @@ export type RunStats = {
 export type ResultCell = {
   problem: string;
   prover: string;
-  result: "satisfiable" | "unsatisfiable" | "unknown" | "timeout" | null;  // null means not finished yet
+  result: "satisfiable" | "unsatisfiable" | "unknown" | "timeout" | null; // null means not finished yet
   stats: RunStats | null;
 };
 
