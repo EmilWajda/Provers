@@ -5,22 +5,25 @@ export default function useMutationNotify<TData = unknown, TError = unknown, TVa
   mutationFn,
   queryKey,
   successMessage,
+  additionalOnSuccess = () => {},
 }: {
   mutationFn: (variables: TVariables) => Promise<TData>;
   queryKey: QueryKey;
   successMessage: string;
+  additionalOnSuccess?: (data: TData) => void;
 }): UseMutateFunction<TData, TError, TVariables, TContext> {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
   const mutation = useMutation<TData, TError, TVariables, TContext>({
     mutationFn,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey });
       showNotification({
         type: "success",
         message: successMessage,
       });
+      additionalOnSuccess(data);
     },
     onError: (error: any) => {
       showNotification({

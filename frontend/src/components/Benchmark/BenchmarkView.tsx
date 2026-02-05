@@ -5,9 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { groupProblems, PrettyPrintParams } from "../../utils";
 import useProblems from "../../hooks/useProblems";
+import useMutationNotify from "../../hooks/useMutationNotify";
+import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
+import type { WorkspaceSettings } from "../../types";
 
 const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) => {
   const { showNotification } = useNotificationContext();
+  const activeWorkspace = useActiveWorkspace().workspace;
 
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(new Set());
   const [selectedProvers, setSelectedProvers] = useState<Set<string>>(new Set());
@@ -55,6 +59,27 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
     staleTime: Infinity, // prover list never changes
   });
 
+  const settings = useQuery({
+    queryKey: ["settings", activeWorkspace],
+    queryFn: async (): Promise<WorkspaceSettings> => {
+      const response = await axios.get(`/api/workspaces/${activeWorkspace}/settings`);
+      return response.data;
+    },
+  });
+
+  const submitBenchmark = useMutationNotify({
+    mutationFn: async (data: { problems: string[]; provers: string[] }) => {
+      const response = await axios.post(`/api/workspaces/${activeWorkspace}/results`, {
+        ...data,
+        timeout: settings.data?.timeout,
+      });
+      return response.data.benchmark;
+    },
+    queryKey: ["results", activeWorkspace],
+    successMessage: "Benchmark submitted successfully.",
+    additionalOnSuccess: onSubmit,
+  });
+
   const handleSubmit = () => {
     if (selectedProblems.size === 0) {
       showNotification({
@@ -70,9 +95,11 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
       });
       return;
     }
-    // TODO: submit benchmark
-    console.log(Array.from(selectedProblems), Array.from(selectedProvers));
-    onSubmit("");
+
+    submitBenchmark({
+      problems: Array.from(selectedProblems),
+      provers: Array.from(selectedProvers),
+    });
   };
 
   const groupedProblems = groupProblems(problems);

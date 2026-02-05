@@ -54,7 +54,8 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
     }
   }, [lastJsonMessage]);
 
-  if (!summary) return <div>Loading result...</div>;
+  if (!summary)
+    return <div className="flex text-gray-400 items-center justify-center h-full text-lg">Loading result...</div>;
 
   return (
     <div className="h-full flex flex-col p-8 animate-in slide-in-from-right duration-300">

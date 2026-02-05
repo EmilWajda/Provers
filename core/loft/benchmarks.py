@@ -1,6 +1,8 @@
 import asyncio
 import aiofiles
+import json
 from os import path
+from aiofiles.os import makedirs
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Callable, Awaitable
@@ -59,7 +61,7 @@ class BenchmarkOrchestrator:
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
         return benchmark
-    
+
     def get_ongoing(self, timestamp: str) -> BenchmarkResult | None:
         for benchmark in self.queues.keys():
             if benchmark.timestamp.isoformat() == timestamp:
@@ -86,6 +88,9 @@ class BenchmarkOrchestrator:
         await self._save_result(benchmark)
 
     async def _save_result(self, benchmark: BenchmarkResult) -> None:
-        result_path = path.join(self.workspace, "results", f"{benchmark.timestamp.isoformat()}.json")
+        results_dir = path.join(self.workspace, "results")
+        await makedirs(results_dir, exist_ok=True)
+        result_path = path.join(results_dir, f"{benchmark.timestamp.isoformat()}.json")
         async with aiofiles.open(result_path, "w") as f:
-            await f.write(str(benchmark.to_dict()))
+            json_str = json.dumps(benchmark.to_dict(), indent=4, ensure_ascii=False)
+            await f.write(json_str)

@@ -36,8 +36,9 @@ const App = () => {
         return (
           <BenchmarkView
             key={activeWorkspace}
-            onSubmit={() => {
-              return;
+            onSubmit={(resultId) => {
+              setActiveTab("results");
+              setActiveResultId(resultId);
             }}
           />
         );
