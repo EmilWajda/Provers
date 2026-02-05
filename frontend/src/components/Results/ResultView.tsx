@@ -3,6 +3,9 @@ import { ResultSummary, type ResultCell } from "../../types";
 import useWebSocket from "react-use-websocket";
 import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
 import { useEffect, useState } from "react";
+import useProblems from "../../hooks/useProblems";
+import useProblemTypes from "../../hooks/useProblemTypes";
+import ResultCharts from "./ResultCharts";
 
 type IncompleteSummary = {
   timestamp: string;
@@ -22,6 +25,8 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
   const activeWorkspace = useActiveWorkspace().workspace;
   const [summary, setSummary] = useState<ResultSummary | null>(null);
   const [cells, setCells] = useState<ResultCell[]>([]);
+  const { problems } = useProblems();
+  const { problemTypes } = useProblemTypes();
   const { lastJsonMessage } = useWebSocket<IncompleteSummary | ResultCell>(
     `/ws/workspaces/${activeWorkspace}/results`,
     {
@@ -145,9 +150,12 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
             </tbody>
           </table>
         </div>
-        <div className="h-64 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400">
-          [charts]
-        </div>
+        <ResultCharts
+          cells={cells}
+          provers={summary.provers}
+          problems={problems}
+          problemTypes={problemTypes}
+        />
       </div>
     </div>
   );
