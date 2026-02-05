@@ -18,8 +18,9 @@ async def get_benchmarks(workspace: str):
                 continue
             async with aiofiles.open(path.join(results_dir, file), "r") as f:
                 content = await f.read()
-                done[file] = json.loads(content)
-                del done[file]["filled_cells"]
+                file_no_ext = file[:-5]
+                done[file_no_ext] = json.loads(content)
+                del done[file_no_ext]["filled_cells"]
     ongoing = []
     if workspace in orchestrators:
         orchestrator = orchestrators[workspace]

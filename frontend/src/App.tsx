@@ -6,6 +6,8 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import GeneratorView from "./components/Generator/GeneratorView";
 import BenchmarkView from "./components/Benchmark/BenchmarkView";
 import SettingsView from "./components/Settings/SettingsView";
+import ResultView from "./components/Results/ResultView";
+import ResultListView from "./components/Results/ResultListView";
 import useWorkspaces from "./hooks/useWorkspaces";
 import Notification from "./components/Notification";
 import { useActiveWorkspace } from "./hooks/useActiveWorkspace";
@@ -15,38 +17,6 @@ const App = () => {
   const { workspace: activeWorkspace, setWorkspace: setActiveWorkspace } = useActiveWorkspace();
   const [activeTab, setActiveTab] = useState<TabName>("settings");
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
-
-  // const submitBenchmark = (selectedProblemIds: string[], selectedProvers: string[]) => {
-  //   if (!activeWorkspaceId) return;
-  //   const currentWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
-  //   if (!currentWorkspace) return;
-  if (activeResultId) console.log("Viewing result:", activeResultId);
-  //   const detailedResults = selectedProblemIds.map(id => {
-  //     const problem = currentWorkspace.problems.find(p => p.id === id);
-  //     const problemStatus = Math.random() > 0.5 ? 'SAT' : 'UNSAT';
-  //     return {
-  //       problemName: problem ? problem.name : 'Unknown',
-  //       proverResults: selectedProvers.reduce((acc, prover) => ({
-  //         ...acc,
-  //         [prover]: {
-  //           time: Number((Math.random() * 5).toFixed(3)),
-  //           memory: Math.floor(Math.random() * 50000 + 1000),
-  //           status: problemStatus
-  //         }
-  //       }), {})
-  //     };
-  //   });
-  //   const newResult: Result = {
-  //     id: Date.now().toString(),
-  //     timestamp: new Date().toLocaleString(),
-  //     provers: selectedProvers,
-  //     problemCount: selectedProblemIds.length,
-  //     detailedResults
-  //   };
-  //   setWorkspaces(workspaces.map(ws => ws.id === activeWorkspaceId ? { ...ws, results: [newResult, ...ws.results] } : ws));
-  //   setActiveTab('results');
-  //   setActiveResultId(newResult.id);
-  // };
 
   const renderContent = () => {
     if (!activeWorkspace) {
@@ -71,8 +41,12 @@ const App = () => {
             }}
           />
         );
-      // case 'results':
-      //   return <ResultsView results={activeWorkspace.results} activeResultId={activeResultId} onSelectResult={setActiveResultId} onBack={() => setActiveResultId(null)} />;
+      case "results":
+        if (activeResultId) {
+          return <ResultView resultId={activeResultId} onBack={() => setActiveResultId(null)} />;
+        } else {
+          return <ResultListView onSelectResult={(resultId) => setActiveResultId(resultId)} />;
+        }
       default:
         return (
           <div className="flex items-center justify-center h-full text-red-400">

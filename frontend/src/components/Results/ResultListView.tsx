@@ -1,14 +1,32 @@
 import { FileText } from "lucide-react";
-import type { Result } from "../../types";
+import { ResultSummary } from "../../types";
+import { useQuery } from "@tanstack/react-query";
+import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
+import axios from "axios";
 
 const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => void }) => {
-  const results: Result[] = []; // TODO: fetch
+  const activeWorkspace = useActiveWorkspace().workspace;
+  const { data } = useQuery({
+    queryKey: ["results", activeWorkspace],
+    queryFn: async (): Promise<ResultSummary[]> => {
+      const response = await axios.get(`/api/workspaces/${activeWorkspace}/results`);
+      const { done, ongoing } = response.data;
+      const doneMapped = Object.entries(done).map(
+        ([filePath, summary]: [string, any]) =>
+          new ResultSummary(summary.timestamp, summary.provers, summary.problems, filePath),
+      );
+      const ongoingMapped = ongoing.map(
+        (summary: any) => new ResultSummary(summary.timestamp, summary.provers, summary.problems, null),
+      );
+      return [...doneMapped, ...ongoingMapped].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    },
+  });
   return (
     <div className="p-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
         <FileText className="text-blue-600 w-8 h-8" /> Results
       </h2>
-      {results.length === 0 ? (
+      {!data || data.length === 0 ? (
         <div className="text-center text-gray-400 mt-20">
           <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileText size={32} />
@@ -28,9 +46,9 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {results.map((result) => (
+              {data.map((result) => (
                 <tr key={result.id} className="hover:bg-blue-50 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-gray-800">{result.timestamp}</td>
+                  <td className="px-6 py-4 font-medium text-gray-800">{result.id}</td>
                   <td className="px-6 py-4 text-gray-600">
                     <div className="flex gap-1">
                       {result.provers.map((p) => (
@@ -40,7 +58,7 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{result.problemCount}</td>
+                  <td className="px-6 py-4 text-gray-600">{result.problems.length}</td>
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => onSelectResult(result.id)}

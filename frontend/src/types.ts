@@ -21,13 +21,36 @@ export interface Problem {
 
 export type ProblemFileList = { [filePath: string]: Problem | null };
 
-export interface Result {  // TODO
-  id: string;
-  timestamp: string;
+export class ResultSummary {
+  filePath: string | null;
+  timestamp: Date;
   provers: string[];
-  problemCount: number;
-  detailedResults: any[];
+  problems: string[];
+
+  constructor(timestamp: string, provers: string[], problems: string[], filePath: string | null = null) {
+    this.timestamp = new Date(timestamp);
+    this.provers = provers;
+    this.problems = problems;
+    this.filePath = filePath;
+  }
+
+  get id() {
+    return this.filePath || this.timestamp.toISOString();
+  }
 }
+
+export type RunStats = {
+  system_time: number;
+  real_time: number;
+  peak_memory: number;
+};
+
+export type ResultCell = {
+  problem: string;
+  prover: string;
+  result: "satisfiable" | "unsatisfiable" | "unknown" | "timeout" | null;  // null means not finished yet
+  stats: RunStats | null;
+};
 
 export interface WorkspaceSettings {
   seed: number | null;
