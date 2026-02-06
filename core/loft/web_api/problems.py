@@ -5,6 +5,7 @@ from os import path
 from quart import Quart, request
 from aiofiles import os as aos
 from ..tptp_builder import TPTPBuilder
+from ..docker import run_tptp_checker
 from ..generators import KNOWN_PROBLEMS
 from ..generators.param_spec import ParamSpec
 
@@ -87,6 +88,10 @@ async def generate_problem(workspace: str):
 
     async with aiofiles.open(file_path, "w") as f:
         await f.write(tptp_output)
+
+    is_valid = await run_tptp_checker(file_path)
+    if not is_valid:
+        return {"error": "Generated TPTP problem syntax is invalid. Please report this issue to the developers."}, 500
 
     rel_path = path.join(problem_dir, suggested).replace("\\", "/")
     return {"path": rel_path}

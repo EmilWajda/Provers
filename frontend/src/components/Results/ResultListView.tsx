@@ -1,8 +1,83 @@
-import { FileText } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { CircleQuestionMark, FileText } from "lucide-react";
 import { ResultSummary } from "../../types";
 import { useQuery } from "@tanstack/react-query";
 import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
 import axios from "axios";
+
+const ProblemTooltip = ({ problems }: { problems: string[] }) => {
+  const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const iconRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!visible || !iconRef.current) return;
+    const rect = iconRef.current.getBoundingClientRect();
+    // place the tooltip directly below the icon (align left to icon)
+    let left = rect.left;
+    let top = rect.bottom + 8;
+    setPos({ top, left });
+
+    // adjust after tooltip mounts so we can avoid viewport overflow
+    const t = setTimeout(() => {
+      const tt = tooltipRef.current?.getBoundingClientRect();
+      if (!tt) return;
+      // if bottom overflows, place above the icon
+      if (top + tt.height > window.innerHeight - 8) {
+        top = rect.top - tt.height - 8;
+      }
+      // if right edge overflows, shift left so it fits
+      if (left + tt.width > window.innerWidth - 8) {
+        left = Math.max(8, window.innerWidth - tt.width - 8);
+      }
+      // ensure tooltip doesn't start off-screen on the left
+      if (left < 8) left = 8;
+      setPos({ top, left });
+    }, 0);
+
+    const onResize = () => setVisible(false);
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [visible]);
+
+  return (
+    <div
+      ref={iconRef}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      className="inline-block p-1 cursor-help"
+    >
+      <CircleQuestionMark className="w-4 h-4 text-gray-400" />
+      {visible &&
+        createPortal(
+          <div
+            ref={tooltipRef}
+            style={{ position: "fixed", top: pos.top, left: pos.left }}
+            className="z-50 max-w-[60vw] bg-white border border-gray-200 rounded shadow-lg p-3 text-sm text-gray-700"
+          >
+            <div className="font-medium text-gray-800 mb-2">Problem Paths</div>
+            <ul className="list-disc list-inside overflow-auto">
+              {problems && problems.length > 0 ? (
+                problems.map((p: string, idx: number) => (
+                  <li key={idx} className="py-0.5">
+                    {p}
+                  </li>
+                ))
+              ) : (
+                <li className="text-gray-500">No details available</li>
+              )}
+            </ul>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+};
 
 const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => void }) => {
   const activeWorkspace = useActiveWorkspace().workspace;
@@ -39,7 +114,7 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs">
               <tr>
-                <th className="px-6 py-4 font-medium">Date / ID</th>
+                <th className="px-6 py-4 font-medium">Date / File Path</th>
                 <th className="px-6 py-4 font-medium">Provers</th>
                 <th className="px-6 py-4 font-medium">Problems</th>
                 <th className="px-6 py-4 font-medium text-right">Action</th>
@@ -48,7 +123,14 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
             <tbody className="divide-y divide-gray-100">
               {data.map((result) => (
                 <tr key={result.id} className="hover:bg-blue-50 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-gray-800">{result.id}</td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    <div className="flex flex-col gap-2">
+                      <p>{result.timestamp.toLocaleString()}</p>
+                      <p className={`text-sm ${result.filePath ? "text-gray-400" : "text-green-400"}`}>
+                        {result.filePath ? `${result.filePath}.json` : "Ongoing..."}
+                      </p>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-gray-600">
                     <div className="flex gap-1">
                       {result.provers.map((p) => (
@@ -58,7 +140,12 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{result.problems.length}</td>
+                  <td className="px-6 py-4 text-gray-600 font-semibold">
+                    <div className="flex gap-2 items-center">
+                      <p>{result.problems.length}</p>
+                      <ProblemTooltip problems={result.problems} />
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => onSelectResult(result.id)}
