@@ -15,6 +15,9 @@ pkgs.mkShell {
     (pkgs.rustfmt.override {
       asNightly = true;
     })
+
+    pkgs.pandoc
+    pkgs.texlive.combined.scheme-medium
   ]
   ++ core-deps;
 

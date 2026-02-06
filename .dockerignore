@@ -4,6 +4,7 @@ Dockerfile
 .gitignore
 README.md
 shell.nix
+docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -36,3 +37,4 @@ logs/
 # Generated files
 workspaces/
 core/loft/static
+*.pdf

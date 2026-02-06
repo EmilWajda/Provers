@@ -29,3 +29,4 @@ logs/
 # Generated files
 workspaces/
 core/loft/static
+*.pdf

@@ -16,3 +16,13 @@ First order logic formula generator and benchmarking tool for theorem provers.
     $ docker compose up
     ```
 5. Open your browser and go to `http://localhost:8000`.
+
+## How to build PDF report (suggestion)
+
+1. Install [Pandoc](https://pandoc.org/installing.html) and [TeX Live](https://www.tug.org/texlive/).
+2. Clone this repository.
+3. Run the following commands:
+    ```bash
+    $ cd docs
+    $ pandoc docs-pl.md -o docs-pl.pdf -V geometry:margin=1in -V colorlinks=true
+    ```

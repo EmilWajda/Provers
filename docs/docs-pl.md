@@ -73,6 +73,116 @@ $ python -m loft --help                # Środowisko deweloperskie
 $ docker compose run --rm core --help  # Środowisko produkcyjne
 ```
 
+## Przewodnik użytkownika
+
+Niniejsza sekcja przedstawia podstawy korzystania z aplikacji webowej LOFT. Interfejs składa się z paska
+bocznego po lewej stronie oraz głównego obszaru roboczego po prawej.
+
+### Tworzenie i wybór workspace
+
+Po uruchomieniu aplikacji należy najpierw utworzyć lub wybrać przestrzeń roboczą (workspace). W pasku bocznym
+znajduje się przycisk "Create Workspace" służący do utworzenia nowego workspace.
+Po utworzeniu pojawi się na liście i można go rozwinąć, aby zobaczyć dostępne zakładki:
+**Settings**, **Generator**, **Benchmark** oraz **Results**.
+
+### Konfiguracja ustawień (Settings)
+
+![Widok ustawień workspace](images/settings.png)
+
+Zakładka **Settings** umożliwia konfigurację dwóch kluczowych parametrów:
+
+- **Seed Configuration** - wybór między losowym seedem (każde generowanie da inne wyniki)
+  a stałym seedem (powtarzalne eksperymenty),
+- **Prover Timeout** - maksymalny czas w sekundach, jaki prover ma na rozwiązanie problemu.
+  Po przekroczeniu tego czasu wynik zostanie oznaczony jako `TIMEOUT`.
+
+Po wprowadzeniu zmian należy kliknąć przycisk **Save Settings**.
+
+### Generowanie problemów (Generator)
+
+![Widok zakładki Generator](images/generate_problems.png)
+
+Zakładka **Generator** wyświetla listę wszystkich wygenerowanych problemów w danym workspace,
+pogrupowanych według typu problemu. Każdy problem pokazuje swoje parametry oraz seed użyty do generowania.
+Problemy można usuwać klikając ikonę kosza.
+
+Aby wygenerować nowy problem, należy kliknąć przycisk **Generate Problems** w prawym górnym rogu.
+
+![Formularz generowania problemu](images/generate_problems_form.png)
+
+Otworzy się modal z formularzem, w którym można:
+
+1. **Wybrać typ problemu** - z listy rozwijanej (Problem 1-8),
+2. **Wybrać preset** - predefiniowany zestaw parametrów (np. Default, Short, Long),
+3. **Dostosować parametry** - każdy typ problemu ma swoje specyficzne parametry,
+   takie jak liczba klauzul, długości klauzul, rozkład itp.
+
+Po skonfigurowaniu parametrów kliknięcie **Generate** utworzy nowy plik TPTP w workspace.
+
+### Uruchamianie benchmarków (Benchmark)
+
+![Widok zakładki Benchmark](images/benchmark_view.png)
+
+Zakładka **Benchmark** służy do konfiguracji i uruchamiania testów wydajnościowych. Interfejs składa się z dwóch sekcji:
+
+**Wybór problemów:**
+
+- Problemy są pogrupowane według typu (problem_1, problem_2 itd.),
+- Można rozwinąć grupę klikając na jej nazwę,
+- Zaznaczanie/odznaczanie problemów odbywa się przez kliknięcie na dany problem,
+- Przycisk "Select/Deselect All" zaznacza lub odznacza wszystkie problemy w grupie.
+
+**Wybór proverów:**
+
+- Na dole ekranu znajduje się lista checkboxów z dostępnymi proverami (Vampire, SPASS, E, iProver, Prover9, Z3, CVC4, CVC5, Drodi),
+- Należy zaznaczyć co najmniej jeden prover.
+
+Po wybraniu problemów i proverów kliknięcie **Run Benchmark** uruchomi testy.
+Aplikacja automatycznie przejdzie do zakładki Results i będzie wyświetlać wyniki w czasie rzeczywistym.
+
+### Przeglądanie wyników (Results)
+
+![Lista wyników benchmarków](images/results_view.png)
+
+Zakładka **Results** wyświetla listę wszystkich przeprowadzonych benchmarków z informacjami:
+
+- Data/ID benchmarku,
+- Lista użytych proverów,
+- Liczba testowanych problemów.
+
+Kliknięcie **View Report** otwiera szczegółowy widok wybranego benchmarku.
+
+![Szczegółowy widok wyników](images/results.png)
+
+Widok szczegółowy prezentuje tabelę z wynikami dla każdej kombinacji problem × prover:
+
+- **Result** - wynik provera (`SATISFIABLE`, `UNSATISFIABLE`, `UNKNOWN`, `TIMEOUT`),
+- **Real Time** - rzeczywisty czas wykonania w sekundach,
+- **System Time** - czas procesora w sekundach,
+- **Memory** - szczytowe zużycie pamięci w KB.
+
+Wyniki są kolorowane dla łatwiejszej interpretacji:
+
+- Zielony = `SATISFIABLE`,
+- Czerwony = `UNSATISFIABLE`,
+- Żółty = `UNKNOWN`,
+- Szary = `TIMEOUT` lub w trakcie.
+
+### Wykresy porównawcze
+
+![Wykresy wyników](images/charts.png)
+
+Pod tabelą wyników znajdują się interaktywne wykresy umożliwiające analizę porównawczą:
+
+- **Wybór parametru (oś X)** - można wybrać parametr problemu (np. liczba klauzul),
+  względem którego będą prezentowane wyniki,
+- **Metryki (oś Y)** - czas systemowy, czas rzeczywisty lub zużycie pamięci,
+- **Osobne trzy wykresy dla każdego provera** - pozwala łatwo porównać wydajność różnych proverów
+  w zależności od parametrów problemu.
+
+Wykresy są szczególnie przydatne do analizy skalowalności proverów - jak zmienia się czas
+rozwiązywania w zależności od rozmiaru problemu.
+
 ## Struktura projektu
 
 Najważniejszymi ścieżkami w projekcie są:
@@ -361,116 +471,6 @@ Własne hooki React do zarządzania stanem i komunikacji z API:
 
 - `PrettyPrintParams()` - komponent formatujący parametry problemu,
 - `splitPath()`, `groupProblems()` - funkcje do grupowania problemów według katalogów.
-
-## Przewodnik użytkownika
-
-Niniejsza sekcja przedstawia podstawy korzystania z aplikacji webowej LOFT. Interfejs składa się z paska
-bocznego po lewej stronie oraz głównego obszaru roboczego po prawej.
-
-### Tworzenie i wybór workspace
-
-Po uruchomieniu aplikacji należy najpierw utworzyć lub wybrać przestrzeń roboczą (workspace). W pasku bocznym
-znajduje się przycisk "Create Workspace" służący do utworzenia nowego workspace.
-Po utworzeniu pojawi się na liście i można go rozwinąć, aby zobaczyć dostępne zakładki:
-**Settings**, **Generator**, **Benchmark** oraz **Results**.
-
-### Konfiguracja ustawień (Settings)
-
-![Widok ustawień workspace](images/settings.png)
-
-Zakładka **Settings** umożliwia konfigurację dwóch kluczowych parametrów:
-
-- **Seed Configuration** - wybór między losowym seedem (każde generowanie da inne wyniki)
-  a stałym seedem (powtarzalne eksperymenty),
-- **Prover Timeout** - maksymalny czas w sekundach, jaki prover ma na rozwiązanie problemu.
-  Po przekroczeniu tego czasu wynik zostanie oznaczony jako `TIMEOUT`.
-
-Po wprowadzeniu zmian należy kliknąć przycisk **Save Settings**.
-
-### Generowanie problemów (Generator)
-
-![Widok zakładki Generator](images/generate_problems.png)
-
-Zakładka **Generator** wyświetla listę wszystkich wygenerowanych problemów w danym workspace,
-pogrupowanych według typu problemu. Każdy problem pokazuje swoje parametry oraz seed użyty do generowania.
-Problemy można usuwać klikając ikonę kosza.
-
-Aby wygenerować nowy problem, należy kliknąć przycisk **Generate Problems** w prawym górnym rogu.
-
-![Formularz generowania problemu](images/generate_problems_form.png)
-
-Otworzy się modal z formularzem, w którym można:
-
-1. **Wybrać typ problemu** - z listy rozwijanej (Problem 1-8),
-2. **Wybrać preset** - predefiniowany zestaw parametrów (np. Default, Short, Long),
-3. **Dostosować parametry** - każdy typ problemu ma swoje specyficzne parametry,
-   takie jak liczba klauzul, długości klauzul, rozkład itp.
-
-Po skonfigurowaniu parametrów kliknięcie **Generate** utworzy nowy plik TPTP w workspace.
-
-### Uruchamianie benchmarków (Benchmark)
-
-![Widok zakładki Benchmark](images/benchmark_view.png)
-
-Zakładka **Benchmark** służy do konfiguracji i uruchamiania testów wydajnościowych. Interfejs składa się z dwóch sekcji:
-
-**Wybór problemów:**
-
-- Problemy są pogrupowane według typu (problem_1, problem_2 itd.),
-- Można rozwinąć grupę klikając na jej nazwę,
-- Zaznaczanie/odznaczanie problemów odbywa się przez kliknięcie na dany problem,
-- Przycisk "Select/Deselect All" zaznacza lub odznacza wszystkie problemy w grupie.
-
-**Wybór proverów:**
-
-- Na dole ekranu znajduje się lista checkboxów z dostępnymi proverami (Vampire, SPASS, E, iProver, Prover9, Z3, CVC4, CVC5, Drodi),
-- Należy zaznaczyć co najmniej jeden prover.
-
-Po wybraniu problemów i proverów kliknięcie **Run Benchmark** uruchomi testy.
-Aplikacja automatycznie przejdzie do zakładki Results i będzie wyświetlać wyniki w czasie rzeczywistym.
-
-### Przeglądanie wyników (Results)
-
-![Lista wyników benchmarków](images/results_view.png)
-
-Zakładka **Results** wyświetla listę wszystkich przeprowadzonych benchmarków z informacjami:
-
-- Data/ID benchmarku,
-- Lista użytych proverów,
-- Liczba testowanych problemów.
-
-Kliknięcie **View Report** otwiera szczegółowy widok wybranego benchmarku.
-
-![Szczegółowy widok wyników](images/results.png)
-
-Widok szczegółowy prezentuje tabelę z wynikami dla każdej kombinacji problem × prover:
-
-- **Result** - wynik provera (`SATISFIABLE`, `UNSATISFIABLE`, `UNKNOWN`, `TIMEOUT`),
-- **Real Time** - rzeczywisty czas wykonania w sekundach,
-- **System Time** - czas procesora w sekundach,
-- **Memory** - szczytowe zużycie pamięci w KB.
-
-Wyniki są kolorowane dla łatwiejszej interpretacji:
-
-- Zielony = `SATISFIABLE`,
-- Czerwony = `UNSATISFIABLE`,
-- Żółty = `UNKNOWN`,
-- Szary = `TIMEOUT` lub w trakcie.
-
-### Wykresy porównawcze
-
-![Wykresy wyników](images/charts.png)
-
-Pod tabelą wyników znajdują się interaktywne wykresy umożliwiające analizę porównawczą:
-
-- **Wybór parametru (oś X)** - można wybrać parametr problemu (np. liczba klauzul),
-  względem którego będą prezentowane wyniki,
-- **Metryki (oś Y)** - czas systemowy, czas rzeczywisty lub zużycie pamięci,
-- **Osobne trzy wykresy dla każdego provera** - pozwala łatwo porównać wydajność różnych proverów
-  w zależności od parametrów problemu.
-
-Wykresy są szczególnie przydatne do analizy skalowalności proverów - jak zmienia się czas
-rozwiązywania w zależności od rozmiaru problemu.
 
 ## Informacje o proverach
 
