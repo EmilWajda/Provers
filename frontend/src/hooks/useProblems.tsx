@@ -13,6 +13,7 @@ export default function useProblems(): {
   isLoading: boolean;
   generateProblem: (problem: Problem) => void;
   deleteProblem: (path: string) => void;
+  renameProblem: (path: string, newName: string) => void;
 } {
   const { showNotification } = useNotificationContext();
   const { workspace } = useActiveWorkspace();
@@ -43,6 +44,15 @@ export default function useProblems(): {
     successMessage: "Problem generated successfully",
   });
 
+  const rename = useMutationNotify({
+    mutationFn: async ({ path, newName }: { path: string; newName: string }) => {
+      if (!workspace) throw new Error("No active workspace");
+      await axios.put(`/api/workspaces/${workspace}/problems`, { path, newName });
+    },
+    queryKey: queryKey(workspace),
+    successMessage: "Problem renamed successfully",
+  });
+
   const remove = useMutationNotify({
     mutationFn: async (path: string) => {
       if (!workspace) throw new Error("No active workspace");
@@ -57,5 +67,6 @@ export default function useProblems(): {
     isLoading: query.isLoading,
     generateProblem: generate,
     deleteProblem: remove,
+    renameProblem: (path: string, newName: string) => rename({ path, newName }),
   };
 }

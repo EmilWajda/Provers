@@ -77,7 +77,48 @@ async def benchmark_websocket(workspace: str):
     return {"error": "File not found."}, 404
 
 
+async def delete_benchmark(workspace: str):
+    data = await request.get_json()
+    bench_id = data.get("id") if isinstance(data, dict) else None
+    if not bench_id:
+        return {"error": "Missing id"}, 400
+    file_path = path.join("workspaces", workspace, "results", f"{bench_id}.json")
+    if await aos.path.exists(file_path):
+        await aos.remove(file_path)
+        return {"ok": True}
+    return {"error": "File not found."}, 404
+
+
+async def rename_benchmark(workspace: str):
+    data = await request.get_json()
+    bench_id = data.get("id")
+    new_name = data.get("newName")
+    if not bench_id or not new_name:
+        return {"error": "Missing id or newName"}, 400
+
+    new_name = new_name.strip()
+    if not new_name or new_name.replace(".", "") == "":
+        return {"error": "Invalid new name"}, 400
+
+    old_file = path.join("workspaces", workspace, "results", f"{bench_id}.json")
+    new_file = path.join("workspaces", workspace, "results", f"{new_name}.json")
+
+    if not await aos.path.exists(old_file):
+        return {"error": "File not found."}, 404
+
+    if path.normpath(old_file) == path.normpath(new_file):
+        return {}
+
+    if await aos.path.exists(new_file):
+        return {"error": "Result with this name already exists."}, 400
+
+    await aos.rename(old_file, new_file)
+    return {"ok": True}
+
+
 def register_results_routes(app: Quart) -> None:
     app.route("/api/workspaces/<workspace>/results")(get_benchmarks)
     app.route("/api/workspaces/<workspace>/results", methods=["POST"])(create_benchmark)
+    app.route("/api/workspaces/<workspace>/results", methods=["PUT"])(rename_benchmark)
+    app.route("/api/workspaces/<workspace>/results", methods=["DELETE"])(delete_benchmark)
     app.websocket("/ws/workspaces/<workspace>/results")(benchmark_websocket)

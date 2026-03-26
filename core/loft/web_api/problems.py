@@ -115,8 +115,53 @@ async def delete_problem(workspace: str):
     return {"error": "File not found."}, 404
 
 
+async def rename_problem(workspace: str):
+    data = await request.get_json()
+    old_path = data.get("path")
+    new_name = data.get("newName")
+
+    if not old_path or not new_name:
+        return {"error": "Path and newName are required."}, 400
+
+    workspace_path = path.join("workspaces", workspace)
+    full_old_path = path.join(workspace_path, old_path)
+
+    if not path.normpath(full_old_path).startswith(path.normpath(workspace_path)):
+        return {"error": "Invalid path."}, 403
+
+    if not await aos.path.exists(full_old_path):
+        return {"error": "File not found."}, 404
+
+    new_name = new_name.strip()
+    if not new_name or new_name.replace(".", "") == "":
+        return {"error": "Invalid new name."}, 400
+
+    directory = path.dirname(full_old_path)
+
+    ext = ""
+    if full_old_path.endswith(".tptp"):
+        ext = ".tptp"
+    elif full_old_path.endswith(".p"):
+        ext = ".p"
+    else:
+        # Fallback if there's no known extension (shouldn't happen but just in case)
+        _, ext = path.splitext(full_old_path)
+
+    full_new_path = path.join(directory, new_name + ext)
+
+    if path.normpath(full_old_path) == path.normpath(full_new_path):
+        return {}
+
+    if await aos.path.exists(full_new_path):
+        return {"error": "File with this name already exists."}, 400
+
+    await aos.rename(full_old_path, full_new_path)
+    return {}
+
+
 def register_problem_routes(app: Quart) -> None:
     app.route("/api/problems")(get_problem_info)
     app.route("/api/workspaces/<workspace>/problems")(get_workspace_problems)
     app.route("/api/workspaces/<workspace>/problems", methods=["POST"])(generate_problem)
+    app.route("/api/workspaces/<workspace>/problems", methods=["PUT"])(rename_problem)
     app.route("/api/workspaces/<workspace>/problems", methods=["DELETE"])(delete_problem)

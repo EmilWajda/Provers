@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Folder, ChevronDown, ChevronRight, Settings, Zap, BarChart, FileText, Trash2 } from "lucide-react";
+import { Folder, ChevronDown, ChevronRight, Settings, Zap, BarChart, FileText, Trash2, Pencil } from "lucide-react";
 import type { TabName } from "../../types";
 import SidebarTab from "./SidebarTab";
 
@@ -9,6 +9,7 @@ interface WorkspaceItemProps {
   isExpanded: boolean;
   activeTab: TabName;
   onToggleExpand: () => void;
+  onRenameWorkspace: (id: string, newName: string) => void;
   onDeleteWorkspace: (id: string) => void;
   onSelectTab: (tab: TabName) => void;
 }
@@ -19,6 +20,7 @@ const WorkspaceItem = ({
   isExpanded,
   activeTab,
   onToggleExpand,
+  onRenameWorkspace,
   onDeleteWorkspace,
   onSelectTab,
 }: WorkspaceItemProps) => {
@@ -43,16 +45,39 @@ const WorkspaceItem = ({
           </span>
         </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowDeleteConfirm(true);
-          }}
-          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-all"
-          title="Delete Workspace"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex transition-all">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const newName = prompt(`Enter new name for workspace ${workspace}:`, workspace);
+              if (newName !== null) {
+                const trimmed = newName.trim();
+                if (trimmed === "" || trimmed.replace(/\./g, "") === "") {
+                  alert("Invalid name.");
+                  return;
+                }
+                if (trimmed !== workspace) {
+                  onRenameWorkspace(workspace, trimmed);
+                }
+              }
+            }}
+            className="p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            title="Rename Workspace"
+          >
+            <Pencil size={14} />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteConfirm(true);
+            }}
+            className="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            title="Delete Workspace"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
 
       {isExpanded && (

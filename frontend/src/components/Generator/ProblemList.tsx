@@ -1,13 +1,14 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import type { ProblemFileList } from "../../types";
 import { groupProblems, PrettyPrintParams } from "../../utils";
 
 interface ProblemListProps {
   problems: ProblemFileList;
   onDeleteProblem: (path: string) => void;
+  onRenameProblem: (path: string, newName: string) => void;
 }
 
-const ProblemList = ({ problems, onDeleteProblem }: ProblemListProps) => {
+const ProblemList = ({ problems, onDeleteProblem, onRenameProblem }: ProblemListProps) => {
   const groupedProblems = groupProblems(problems);
 
   if (Object.keys(groupedProblems).length === 0) {
@@ -40,13 +41,35 @@ const ProblemList = ({ problems, onDeleteProblem }: ProblemListProps) => {
                       <span className="text-xs text-gray-400 ml-auto text-right">
                         <PrettyPrintParams problemData={problem.problem} />
                       </span>
-                      <button
-                        onClick={() => onDeleteProblem(problem.fullPath)}
-                        className="text-red-300 hover:text-red-600 transition-colors p-2 mr-2"
-                        title="Delete Problem"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex items-center transition-opacity">
+                        <button
+                          onClick={() => {
+                            const nameWithoutExt = problem.fileName.replace(/\.[^/.]+$/, "");
+                            const newName = prompt(`Enter new name for problem ${problem.fileName}:`, nameWithoutExt);
+                            if (newName !== null) {
+                              const trimmed = newName.trim();
+                              if (trimmed === "" || trimmed.replace(/\./g, "") === "") {
+                                alert("Invalid name.");
+                                return;
+                              }
+                              if (trimmed !== nameWithoutExt) {
+                                onRenameProblem(problem.fullPath, trimmed);
+                              }
+                            }
+                          }}
+                          className="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors p-1.5 mx-1"
+                          title="Rename Problem"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => onDeleteProblem(problem.fullPath)}
+                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors p-1.5 mr-1"
+                          title="Delete Problem"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   </li>
                 ))}

@@ -1,10 +1,11 @@
+import { FileText, Trash2, Pencil, CircleQuestionMark  } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { CircleQuestionMark, FileText } from "lucide-react";
 import { ResultSummary } from "../../types";
 import { useQuery } from "@tanstack/react-query";
 import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
 import axios from "axios";
+import useMutationNotify from "../../hooks/useMutationNotify";
 
 const ProblemTooltip = ({ problems }: { problems: string[] }) => {
   const [visible, setVisible] = useState(false);
@@ -96,6 +97,22 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
       return [...doneMapped, ...ongoingMapped].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     },
   });
+  const deleteReport = useMutationNotify({
+    mutationFn: async (id: string) => {
+      if (!activeWorkspace) throw new Error("No active workspace");
+      await axios.delete(`/api/workspaces/${activeWorkspace}/results`, { data: { id } });
+    },
+    queryKey: ["results", activeWorkspace],
+    successMessage: "Report deleted successfully",
+  });
+  const renameReport = useMutationNotify({
+    mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
+      if (!activeWorkspace) throw new Error("No active workspace");
+      await axios.put(`/api/workspaces/${activeWorkspace}/results`, { id, newName });
+    },
+    queryKey: ["results", activeWorkspace],
+    successMessage: "Report renamed successfully",
+  });
   return (
     <div className="p-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
@@ -147,12 +164,44 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => onSelectResult(result.id)}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded transition-all bg-white hover:shadow-sm"
-                    >
-                      View Report
-                    </button>
+                    <div className="inline-flex items-center justify-end">
+                      <button
+                        onClick={() => onSelectResult(result.id)}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded transition-all bg-white hover:shadow-sm"
+                      >
+                        View Report
+                      </button>
+                      {result.filePath && (
+                        <>
+                          <button
+                            onClick={() => {
+                              const newName = prompt(`Enter new name for report ${result.id}:`, result.id);
+                              if (newName !== null) {
+                                const trimmed = newName.trim();
+                                if (trimmed === "" || trimmed.replace(/\./g, "") === "") {
+                                  alert("Invalid name.");
+                                  return;
+                                }
+                                if (trimmed !== result.id) {
+                                  renameReport({ id: result.id, newName: trimmed });
+                                }
+                              }
+                            }}
+                            title="Rename Report"
+                            className="ml-3 text-blue-500 hover:text-blue-700 px-3 py-1.5 rounded text-sm border border-blue-100 hover:border-blue-200 transition-all bg-white hover:shadow-sm"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => deleteReport(result.id)}
+                            title="Delete Report"
+                            className="ml-3 text-red-500 hover:text-red-700 px-3 py-1.5 rounded text-sm border border-red-100 hover:border-red-200 transition-all bg-white hover:shadow-sm"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

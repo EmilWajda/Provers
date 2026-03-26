@@ -4,6 +4,8 @@ import { useNotificationContext } from "./useNotificationContext";
 import { useEffect } from "react";
 import useMutationNotify from "./useMutationNotify";
 
+import { useActiveWorkspace } from "./useActiveWorkspace";
+
 const QUERY_KEY = ["workspaces"];
 
 export default function useWorkspaces(): {
@@ -11,8 +13,10 @@ export default function useWorkspaces(): {
   isLoading: boolean;
   createWorkspace: (name: string) => void;
   deleteWorkspace: (name: string) => void;
+  renameWorkspace: (name: string, newName: string) => void;
 } {
   const { showNotification } = useNotificationContext();
+  const { workspace: activeWorkspace, setWorkspace } = useActiveWorkspace();
 
   const query = useQuery({
     queryKey: QUERY_KEY,
@@ -39,6 +43,20 @@ export default function useWorkspaces(): {
     successMessage: "Workspace created successfully",
   });
 
+  const rename = useMutationNotify({
+    mutationFn: async ({ name, newName }: { name: string; newName: string }) => {
+      await axios.put("/api/workspaces", { name, newName });
+      return { oldName: name, newName: newName };
+    },
+    queryKey: QUERY_KEY,
+    successMessage: "Workspace renamed successfully",
+    additionalOnSuccess: (data: any) => {
+      if (activeWorkspace === data.oldName) {
+        setWorkspace(data.newName);
+      }
+    },
+  });
+
   const remove = useMutationNotify({
     mutationFn: async (name: string) => {
       await axios.delete("/api/workspaces", { data: { name } });
@@ -52,5 +70,6 @@ export default function useWorkspaces(): {
     isLoading: query.isLoading,
     createWorkspace: create,
     deleteWorkspace: remove,
+    renameWorkspace: (name: string, newName: string) => rename({ name, newName }),
   };
 }

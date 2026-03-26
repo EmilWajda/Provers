@@ -10,6 +10,7 @@ interface SidebarProps {
   activeTab: TabName;
   isLoading: boolean;
   onCreateWorkspace: (name: string) => void;
+  onRenameWorkspace: (name: string, newName: string) => void;
   onDeleteWorkspace: (id: string) => void;
   onSelectTab: (workspaceId: string, tab: TabName) => void;
 }
@@ -19,6 +20,7 @@ const Sidebar = ({
   activeTab,
   isLoading,
   onCreateWorkspace,
+  onRenameWorkspace,
   onDeleteWorkspace,
   onSelectTab,
 }: SidebarProps) => {
@@ -62,6 +64,7 @@ const Sidebar = ({
             isExpanded={expandedIds.has(ws)}
             activeTab={activeTab}
             onToggleExpand={() => toggleExpansion(ws)}
+            onRenameWorkspace={onRenameWorkspace}
             onDeleteWorkspace={onDeleteWorkspace}
             onSelectTab={(tab) => onSelectTab(ws, tab)}
           />

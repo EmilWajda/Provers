@@ -14,7 +14,7 @@ function getRandomSeed() {
 
 const GeneratorView = () => {
   const activeWorkspace = useActiveWorkspace().workspace;
-  const { problems, generateProblem, deleteProblem } = useProblems();
+  const { problems, generateProblem, deleteProblem, renameProblem } = useProblems();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const settings = useQuery({
@@ -44,7 +44,7 @@ const GeneratorView = () => {
         </button>
       </div>
 
-      <ProblemList problems={problems} onDeleteProblem={deleteProblem} />
+      <ProblemList problems={problems} onDeleteProblem={deleteProblem} onRenameProblem={renameProblem} />
 
       {isModalOpen && <CreateProblemModal onClose={() => setIsModalOpen(false)} onGenerate={handleGenerate} />}
     </div>

@@ -13,7 +13,7 @@ import Notification from "./components/Notification";
 import { useActiveWorkspace } from "./hooks/useActiveWorkspace";
 
 const App = () => {
-  const { workspaces, isLoading, createWorkspace, deleteWorkspace } = useWorkspaces();
+  const { workspaces, isLoading, createWorkspace, deleteWorkspace, renameWorkspace } = useWorkspaces();
   const { workspace: activeWorkspace, setWorkspace: setActiveWorkspace } = useActiveWorkspace();
   const [activeTab, setActiveTab] = useState<TabName>("settings");
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
@@ -64,6 +64,9 @@ const App = () => {
         activeTab={activeTab}
         isLoading={isLoading}
         onCreateWorkspace={createWorkspace}
+        onRenameWorkspace={(workspace, newName) => {
+          renameWorkspace(workspace, newName);
+        }}
         onDeleteWorkspace={(workspace) => {
           deleteWorkspace(workspace);
           if (activeWorkspace === workspace) {

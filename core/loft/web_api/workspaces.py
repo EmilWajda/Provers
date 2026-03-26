@@ -46,7 +46,35 @@ async def delete_workspace():
     return {}
 
 
+async def rename_workspace():
+    data = await request.get_json()
+    old_name = data.get("name")
+    new_name = data.get("newName")
+    if not old_name or not new_name:
+        return {"error": "Workspace name and newName are required."}, 400
+
+    new_name = new_name.strip()
+    if not new_name or new_name == "." or new_name == "..":
+        return {"error": "Invalid workspace name."}, 400
+
+    old_path = path.join("workspaces", old_name)
+    new_path = path.join("workspaces", new_name)
+
+    if not await aos.path.exists(old_path):
+        return {"error": "Workspace does not exist."}, 400
+
+    if old_name == new_name:
+        return {}
+
+    if await aos.path.exists(new_path):
+        return {"error": "Workspace with this name already exists."}, 400
+
+    await aos.rename(old_path, new_path)
+    return {}
+
+
 def register_workspace_routes(app: Quart) -> None:
     app.route("/api/workspaces")(get_workspaces)
     app.route("/api/workspaces", methods=["POST"])(create_workspace)
+    app.route("/api/workspaces", methods=["PUT"])(rename_workspace)
     app.route("/api/workspaces", methods=["DELETE"])(delete_workspace)
