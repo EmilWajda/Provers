@@ -7,6 +7,8 @@ import useProblems from "../../hooks/useProblems";
 import useProblemTypes from "../../hooks/useProblemTypes";
 import ResultCharts from "./ResultCharts";
 
+const useWS = (useWebSocket as any).default as typeof useWebSocket; // A weird hack to fix import issues
+
 type IncompleteSummary = {
   timestamp: string;
   provers: string[];
@@ -27,13 +29,10 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
   const [cells, setCells] = useState<ResultCell[]>([]);
   const { problems } = useProblems();
   const { problemTypes } = useProblemTypes();
-  const { lastJsonMessage } = useWebSocket<IncompleteSummary | ResultCell>(
-    `/ws/workspaces/${activeWorkspace}/results`,
-    {
-      queryParams: { benchmark: resultId },
-      shouldReconnect: (_event) => false,
-    },
-  );
+  const { lastJsonMessage } = useWS<IncompleteSummary | ResultCell>(`/ws/workspaces/${activeWorkspace}/results`, {
+    queryParams: { benchmark: resultId },
+    shouldReconnect: (_event) => false,
+  });
 
   const setOrUpdateCell = (newCell: ResultCell) => {
     setCells((prev) => {
@@ -121,7 +120,9 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
                         <div className="space-y-1">
                           <div className="flex justify-between items-center pt-1 border-t border-gray-50 mt-1">
                             <span className="text-gray-400 text-xs">Result:</span>
-                            <span className={`font-bold text-xs px-1.5 py-0.5 rounded ${resultStatusClassMap[status]}`}>
+                            <span
+                              className={`font-bold text-xs px-1.5 py-0.5 rounded-sm ${resultStatusClassMap[status]}`}
+                            >
                               {status.toUpperCase()}
                             </span>
                           </div>
@@ -150,12 +151,7 @@ const ResultView = ({ resultId, onBack }: { resultId: string; onBack: () => void
             </tbody>
           </table>
         </div>
-        <ResultCharts
-          cells={cells}
-          provers={summary.provers}
-          problems={problems}
-          problemTypes={problemTypes}
-        />
+        <ResultCharts cells={cells} provers={summary.provers} problems={problems} problemTypes={problemTypes} />
       </div>
     </div>
   );

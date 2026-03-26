@@ -147,7 +147,7 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
                     <button
                       key={p.fullPath}
                       onClick={() => toggleProblem(p.fullPath)}
-                      className={`w-full flex items-center gap-3 p-2 rounded cursor-pointer transition-colors text-left outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full flex items-center gap-3 p-2 rounded-sm cursor-pointer transition-colors text-left outline-hidden focus:ring-2 focus:ring-blue-500 ${
                         isSelected ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50 border border-transparent"
                       }`}
                     >
@@ -180,7 +180,7 @@ const BenchmarkView = ({ onSubmit }: { onSubmit: (resultId: string) => void }) =
               <label key={prover} className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" className="sr-only" checked={isChecked} onChange={() => toggleProver(prover)} />
                 <div
-                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                  className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
                     isChecked ? "bg-purple-600 border-purple-600" : "border-gray-300 bg-white"
                   }`}
                   aria-hidden="true"

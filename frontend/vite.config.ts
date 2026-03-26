@@ -1,11 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig((cfg) => {
+  const plugins = [react(), tailwindcss()];
   if (cfg.command === "serve") {
     return {
-      plugins: [react()],
+      plugins,
       server: {
         proxy: {
           "/api": {
@@ -24,7 +26,7 @@ export default defineConfig((cfg) => {
     };
   } else {
     return {
-      plugins: [react()],
+      plugins,
     };
   }
 });

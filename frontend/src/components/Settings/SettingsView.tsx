@@ -121,7 +121,7 @@ export default function SettingsView() {
                   value={customSeed}
                   onChange={(e) => setCustomSeed(Number(e.target.value))}
                   placeholder="Enter an integer (e.g., 12345)"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-hidden transition-shadow"
                 />
                 <p className="text-xs text-gray-400 mt-1">Enter an integer to serve as the generator seed.</p>
               </div>
@@ -148,7 +148,7 @@ export default function SettingsView() {
                 value={proverTimeout}
                 onChange={(e) => setProverTimeout(Number(e.target.value))}
                 min="1"
-                className="w-32 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                className="w-32 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-hidden transition-shadow"
               />
               <span className="text-gray-500 text-sm">seconds per problem</span>
             </div>

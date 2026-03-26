@@ -45,7 +45,7 @@ const CreateWorkspace = ({ isLoading, onCreate }: CreateWorkspaceProps) => {
           autoFocus
           type="text"
           placeholder="Workspace Name..."
-          className="w-full border-b border-gray-300 focus:border-blue-500 outline-none text-sm py-1"
+          className="w-full border-b border-gray-300 focus:border-blue-500 outline-hidden text-sm py-1"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -57,7 +57,7 @@ const CreateWorkspace = ({ isLoading, onCreate }: CreateWorkspaceProps) => {
           >
             Cancel
           </button>
-          <button type="submit" className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+          <button type="submit" className="text-xs bg-blue-600 text-white px-3 py-1 rounded-sm hover:bg-blue-700">
             Create
           </button>
         </div>

@@ -34,7 +34,7 @@ const ProblemList = ({ problems, onDeleteProblem, onRenameProblem }: ProblemList
                 {typeProblems.map((problem) => (
                   <li
                     key={problem.fullPath}
-                    className="flex justify-between items-center p-2 hover:bg-gray-50 rounded group"
+                    className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-sm group"
                   >
                     <span className="text-gray-700 font-mono text-sm">{problem.fileName}</span>
                     <div className="flex items-center gap-4">

@@ -9,7 +9,7 @@ First order logic formula generator and benchmarking tool for theorem provers.
 3. Build the images:
     ```bash
     $ docker compose build base
-    $ docker compose build
+    $ docker compose --profile tools build
     ```
 4. Run the web application:
     ```bash

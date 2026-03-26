@@ -51,7 +51,7 @@ const Sidebar = ({
   };
 
   return (
-    <div className="w-64 bg-gray-100 flex flex-col border-r border-gray-200 h-full flex-shrink-0">
+    <div className="w-64 bg-gray-100 flex flex-col border-r border-gray-200 h-full shrink-0">
       <SidebarHeader />
       <CreateWorkspace onCreate={onCreateWorkspace} isLoading={isLoading} />
 

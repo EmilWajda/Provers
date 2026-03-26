@@ -25,13 +25,13 @@ type ChartMetric = "system_time" | "real_time" | "peak_memory";
 
 const CHART_COLORS = [
   "rgb(59, 130, 246)",
-  "rgb(239, 68, 68)",    
-  "rgb(34, 197, 94)",   
-  "rgb(234, 179, 8)",    
-  "rgb(168, 85, 247)",   
-  "rgb(249, 115, 22)",   
-  "rgb(20, 184, 166)",   
-  "rgb(236, 72, 153)",  
+  "rgb(239, 68, 68)",
+  "rgb(34, 197, 94)",
+  "rgb(234, 179, 8)",
+  "rgb(168, 85, 247)",
+  "rgb(249, 115, 22)",
+  "rgb(20, 184, 166)",
+  "rgb(236, 72, 153)",
 ];
 
 const METRIC_LABELS: Record<ChartMetric, string> = {
@@ -40,11 +40,7 @@ const METRIC_LABELS: Record<ChartMetric, string> = {
   peak_memory: "Peak Memory (KB)",
 };
 
-function extractAllParameters(
-  problems: ProblemFileList,
-  problemTypes: ProblemTypeList,
-  cells: ResultCell[],
-): string[] {
+function extractAllParameters(problems: ProblemFileList, problemTypes: ProblemTypeList, cells: ResultCell[]): string[] {
   const paramSet = new Set<string>();
 
   // Get unique problem names from cells (problems in this result)
@@ -56,10 +52,10 @@ function extractAllParameters(
     // Only consider problems that are part of this result
     const matchesResult = Array.from(resultProblemNames).some((name) => path.includes(name));
     if (!matchesResult) continue;
-    
+
     const typeSpec = problemTypes[problem.problem];
     if (!typeSpec) continue;
-    
+
     for (const paramName of Object.keys(problem.params)) {
       const paramSpec = typeSpec.params[paramName];
       // Only include numeric parameters (integer or float)
@@ -193,7 +189,7 @@ function SingleChart({
 
   if (dataPoints.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center bg-gray-50 rounded border border-gray-200 text-gray-400 text-sm">
+      <div className="h-48 flex items-center justify-center bg-gray-50 rounded-sm border border-gray-200 text-gray-400 text-sm">
         No data for {prover} with parameter "{paramName}"
       </div>
     );
@@ -238,7 +234,9 @@ const ResultCharts = ({ cells, provers, problems, problemTypes }: ResultChartsPr
     <div className="mt-8">
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center gap-2">
-          <label htmlFor="param-select" className="text-sm font-medium text-gray-700">Parameter:</label>
+          <label htmlFor="param-select" className="text-sm font-medium text-gray-700">
+            Parameter:
+          </label>
           <select
             id="param-select"
             value={effectiveParam}
@@ -246,7 +244,7 @@ const ResultCharts = ({ cells, provers, problems, problemTypes }: ResultChartsPr
               setSelectedParam(e.target.value);
               setShowCharts(false);
             }}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white min-w-[180px]"
+            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-hidden bg-white min-w-[180px]"
           >
             {availableParams.map((param) => (
               <option key={param} value={param}>

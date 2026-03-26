@@ -5,8 +5,8 @@ let
       (pkgs.fetchFromGitHub {
         owner = "pyproject-nix";
         repo = "pyproject.nix";
-        rev = "2c8df1383b32e5443c921f61224b198a2282a657";
-        hash = "sha256-xaKvtPx6YAnA3HQVp5LwyYG1MaN4LLehpQI8xEdBvBY=";
+        rev = "d37dcf34ac7194eac4b0d10520d01298c434267d";
+        hash = "sha256-HmcZQ/hMPHR22Ri/6Sl7Z0B5J8nZa9bRnZJtDFInM7I=";
       })
       {
         inherit (pkgs) lib;

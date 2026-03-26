@@ -35,11 +35,11 @@ const WorkspaceItem = ({
       >
         <button onClick={onToggleExpand} className="flex-1 flex items-center gap-2 p-2 text-left overflow-hidden">
           {isExpanded ? (
-            <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
+            <ChevronDown size={16} className="text-gray-500 shrink-0" />
           ) : (
-            <ChevronRight size={16} className="text-gray-500 flex-shrink-0" />
+            <ChevronRight size={16} className="text-gray-500 shrink-0" />
           )}
-          <Folder size={18} className={isActive ? "text-blue-600 flex-shrink-0" : "text-gray-500 flex-shrink-0"} />
+          <Folder size={18} className={isActive ? "text-blue-600 shrink-0" : "text-gray-500 shrink-0"} />
           <span className={`font-medium text-sm truncate ${isActive ? "text-gray-900" : "text-gray-600"}`}>
             {workspace}
           </span>

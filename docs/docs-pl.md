@@ -16,7 +16,7 @@ skorzystaj z tego sposobu.
 3. Zbuduj obrazy:
    ```bash
    $ docker compose build base
-   $ docker compose build
+   $ docker compose --profile tools build
    ```
 4. Uruchom aplikację webową:
    ```bash

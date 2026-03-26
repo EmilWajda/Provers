@@ -21,7 +21,7 @@ const ParamLabel = ({ name, description }: { name: string; description?: string 
       {name}
     </label>
     {description && (
-      <div className="pointer-events-none absolute bottom-full left-0 mb-2 w-max max-w-xs rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 z-10 shadow-lg">
+      <div className="pointer-events-none absolute bottom-full left-0 mb-2 w-max max-w-xs rounded-sm bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 z-10 shadow-lg">
         {description}
         <div className="absolute top-full left-4 -mt-[1px] border-4 border-transparent border-t-gray-900"></div>
       </div>
@@ -47,7 +47,7 @@ const IntegerListInput = ({ value, onChange, name, description }: IntegerListInp
           type="number"
           value={newVal}
           onChange={(e) => setNewVal(e.target.value)}
-          className="flex-1 border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          className="flex-1 border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-hidden"
           placeholder="Add value"
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())}
         />
@@ -111,7 +111,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
 
   if (isLoading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-black/50 z-50">
         <div className="bg-white p-4 rounded">Loading...</div>
       </div>
     );
@@ -119,7 +119,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
   const currentTypeSpec = problemTypes[selectedType];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-2xl w-96 p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-4 text-gray-800">Generate new problem</h3>
 
@@ -127,7 +127,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Problem type</label>
             <select
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-hidden"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
             >
@@ -150,7 +150,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
                     key={preset}
                     type="button"
                     onClick={() => applyPreset(preset)}
-                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border border-gray-300"
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-sm border border-gray-300"
                   >
                     {preset}
                   </button>
@@ -168,7 +168,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
                     <input
                       type="number"
                       step={spec.type === "float" ? "any" : "1"}
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-hidden"
                       value={currentParams[key] ?? ""}
                       onChange={(e) =>
                         setCurrentParams({
@@ -201,7 +201,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
                   <div key={key}>
                     <ParamLabel name={key} description={spec.description} />
                     <select
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-hidden"
                       value={currentParams[key] ?? choices[0] ?? ""}
                       onChange={(e) => setCurrentParams({ ...currentParams, [key]: e.target.value })}
                     >

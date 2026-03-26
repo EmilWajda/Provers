@@ -1,4 +1,4 @@
-import { FileText, Trash2, Pencil, CircleQuestionMark  } from "lucide-react";
+import { FileText, Trash2, Pencil, CircleQuestionMark } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ResultSummary } from "../../types";
@@ -59,7 +59,7 @@ const ProblemTooltip = ({ problems }: { problems: string[] }) => {
           <div
             ref={tooltipRef}
             style={{ position: "fixed", top: pos.top, left: pos.left }}
-            className="z-50 max-w-[60vw] bg-white border border-gray-200 rounded shadow-lg p-3 text-sm text-gray-700"
+            className="z-50 max-w-[60vw] bg-white border border-gray-200 rounded-sm shadow-lg p-3 text-sm text-gray-700"
           >
             <div className="font-medium text-gray-800 mb-2">Problem Paths</div>
             <ul className="list-disc list-inside overflow-auto">
@@ -167,7 +167,7 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
                     <div className="inline-flex items-center justify-end">
                       <button
                         onClick={() => onSelectResult(result.id)}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded transition-all bg-white hover:shadow-sm"
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded-sm transition-all bg-white hover:shadow-sm"
                       >
                         View Report
                       </button>
@@ -188,14 +188,14 @@ const ResultListView = ({ onSelectResult }: { onSelectResult: (id: string) => vo
                               }
                             }}
                             title="Rename Report"
-                            className="ml-3 text-blue-500 hover:text-blue-700 px-3 py-1.5 rounded text-sm border border-blue-100 hover:border-blue-200 transition-all bg-white hover:shadow-sm"
+                            className="ml-3 text-blue-500 hover:text-blue-700 px-3 py-1.5 rounded-sm text-sm border border-blue-100 hover:border-blue-200 transition-all bg-white hover:shadow-sm"
                           >
                             <Pencil size={16} />
                           </button>
                           <button
                             onClick={() => deleteReport(result.id)}
                             title="Delete Report"
-                            className="ml-3 text-red-500 hover:text-red-700 px-3 py-1.5 rounded text-sm border border-red-100 hover:border-red-200 transition-all bg-white hover:shadow-sm"
+                            className="ml-3 text-red-500 hover:text-red-700 px-3 py-1.5 rounded-sm text-sm border border-red-100 hover:border-red-200 transition-all bg-white hover:shadow-sm"
                           >
                             <Trash2 size={16} />
                           </button>
