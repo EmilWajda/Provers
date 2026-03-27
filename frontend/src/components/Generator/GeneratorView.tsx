@@ -26,7 +26,7 @@ const GeneratorView = () => {
   });
 
   const handleGenerate = (type: string, params: ProblemParams) => {
-    generateProblem({ problem: type, params, seed: settings.data?.seed || getRandomSeed() });
+    generateProblem({ problem: type, params, seed: settings.data?.seed || getRandomSeed(), check: settings.data?.check ?? true });
     setIsModalOpen(false);
   };
 

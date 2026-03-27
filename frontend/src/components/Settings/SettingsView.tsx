@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Save, Clock, Hash, Shuffle } from "lucide-react";
+import { Settings, Save, Clock, Hash, Shuffle, ToggleRight } from "lucide-react";
 import type { WorkspaceSettings } from "../../types";
 import { useQuery } from "@tanstack/react-query";
 import { useActiveWorkspace } from "../../hooks/useActiveWorkspace";
@@ -32,6 +32,7 @@ export default function SettingsView() {
   const [seedMode, setSeedMode] = useState<"random" | "custom" | null>(null);
   const [customSeed, setCustomSeed] = useState<number>(0);
   const [proverTimeout, setProverTimeout] = useState<number>(60);
+  const [checkEnabled, setCheckEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     if (query.data) {
@@ -43,6 +44,7 @@ export default function SettingsView() {
         setCustomSeed(0);
       }
       setProverTimeout(query.data.timeout);
+      setCheckEnabled(query.data.check);
     }
   }, [query.data]);
 
@@ -58,6 +60,7 @@ export default function SettingsView() {
     const newSettings: WorkspaceSettings = {
       seed: seedMode === "custom" ? customSeed : null,
       timeout: proverTimeout,
+      check: checkEnabled,
     };
     updateSettings(newSettings);
   };
@@ -153,6 +156,33 @@ export default function SettingsView() {
               <span className="text-gray-500 text-sm">seconds per problem</span>
             </div>
           </div>
+        </div>
+
+        {/* Flags Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <ToggleRight size={20} className="text-green-500" />
+            Additional Flags
+          </h3>
+          <p className="text-gray-500 text-sm mb-4">Enable or disable additional flags for this workspace.</p>
+          <label
+            htmlFor="check-enabled"
+            className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer"
+          >
+            <div>
+              <p className="text-sm font-medium text-gray-800">Enable generator checks</p>
+              <p className="text-xs text-gray-500">
+                When enabled, the generator will run a TPTP syntax checker to ensure correctness.
+              </p>
+            </div>
+            <input
+              id="check-enabled"
+              type="checkbox"
+              checked={checkEnabled}
+              onChange={(e) => setCheckEnabled(e.target.checked)}
+              className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </label>
         </div>
 
         {/* Save Button */}

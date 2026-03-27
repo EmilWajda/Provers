@@ -61,6 +61,7 @@ async def generate_problem(workspace: str):
     problem_name = data.get("problem")
     params = data.get("params")
     seed = data.get("seed") or randint(0, 2**32 - 1)
+    check = data.get("check", True)
 
     if not problem_name or not params:
         return {"error": "Problem name and parameters are required."}, 400
@@ -89,7 +90,7 @@ async def generate_problem(workspace: str):
     async with aiofiles.open(file_path, "w") as f:
         await f.write(tptp_output)
 
-    is_valid = await run_tptp_checker(file_path)
+    is_valid = await run_tptp_checker(file_path) if check else True
     if not is_valid:
         return {"error": "Generated TPTP problem syntax is invalid. Please report this issue to the developers."}, 500
 

@@ -55,6 +55,7 @@ export type ResultCell = {
 export interface WorkspaceSettings {
   seed: number | null;
   timeout: number;
+  check: boolean;
 }
 
 export type TabName = "settings" | "generator" | "benchmark" | "results";

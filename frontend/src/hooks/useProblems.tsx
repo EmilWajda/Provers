@@ -8,10 +8,12 @@ import { useActiveWorkspace } from "./useActiveWorkspace";
 
 const queryKey = (workspace: string | null) => ["problems", workspace || ""];
 
+type ProblemWithCheck = Problem & { check?: boolean };
+
 export default function useProblems(): {
   problems: ProblemFileList;
   isLoading: boolean;
-  generateProblem: (problem: Problem) => void;
+  generateProblem: (problem: ProblemWithCheck) => void;
   deleteProblem: (path: string) => void;
   renameProblem: (path: string, newName: string) => void;
 } {
@@ -36,7 +38,7 @@ export default function useProblems(): {
   }, [query.isError]);
 
   const generate = useMutationNotify({
-    mutationFn: async (problem: Problem) => {
+    mutationFn: async (problem: ProblemWithCheck) => {
       if (!workspace) throw new Error("No active workspace");
       await axios.post(`/api/workspaces/${workspace}/problems`, problem);
     },

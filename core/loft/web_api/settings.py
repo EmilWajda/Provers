@@ -11,6 +11,7 @@ async def get_workspace_settings(workspace: str):
     default_settings = {
         "seed": None,
         "timeout": 60,
+        "check": True,
     }
     settings_path = path.join("workspaces", workspace, "settings.json")
     if await aos.path.exists(settings_path):
@@ -21,6 +22,8 @@ async def get_workspace_settings(workspace: str):
                 default_settings["seed"] = settings["seed"]
             if "timeout" in settings and isinstance(settings["timeout"], int):
                 default_settings["timeout"] = settings["timeout"]
+            if "check" in settings and isinstance(settings["check"], bool):
+                default_settings["check"] = settings["check"]
     return default_settings
 
 
