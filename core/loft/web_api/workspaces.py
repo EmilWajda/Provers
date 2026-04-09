@@ -1,6 +1,7 @@
 from quart import Quart, request
 from aiofiles import os as aos
 from os import path
+from ..benchmarks import orchestrators
 
 
 async def _remove_directory(dir_path: str) -> None:
@@ -42,7 +43,12 @@ async def delete_workspace():
     workspace_path = path.join("workspaces", workspace_name)
     if not await aos.path.exists(workspace_path):
         return {"error": "Workspace does not exist."}, 400
+    orchestrator = orchestrators.get(workspace_name)
+    if orchestrator and orchestrator.has_ongoing():
+        return {"error": "Cannot delete workspace with ongoing benchmarks."}, 400
     await _remove_directory(workspace_path)
+    if orchestrator:
+        del orchestrators[workspace_name]
     return {}
 
 
@@ -69,7 +75,12 @@ async def rename_workspace():
     if await aos.path.exists(new_path):
         return {"error": "Workspace with this name already exists."}, 400
 
+    orchestrator = orchestrators.get(old_name)
+    if orchestrator and orchestrator.has_ongoing():
+        return {"error": "Cannot rename workspace with ongoing benchmarks."}, 400
     await aos.rename(old_path, new_path)
+    if orchestrator:
+        del orchestrators[old_name]
     return {}
 
 

@@ -93,3 +93,9 @@ class BenchmarkOrchestrator:
         async with aiofiles.open(result_path, "w") as f:
             json_str = json.dumps(benchmark.to_dict(), indent=4, ensure_ascii=False)
             await f.write(json_str)
+
+    def has_ongoing(self) -> bool:
+        return bool(self.tasks)
+
+
+orchestrators: dict[str, BenchmarkOrchestrator] = {}  # workspace -> orchestrator

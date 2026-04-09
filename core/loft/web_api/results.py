@@ -4,9 +4,7 @@ import json
 from os import path
 from aiofiles import os as aos
 from quart import Quart, request, websocket
-from ..benchmarks import BenchmarkOrchestrator
-
-orchestrators: dict[str, BenchmarkOrchestrator] = {}  # workspace -> orchestrator
+from ..benchmarks import BenchmarkOrchestrator, orchestrators
 
 
 async def get_benchmarks(workspace: str):
