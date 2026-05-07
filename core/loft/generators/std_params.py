@@ -29,3 +29,8 @@ class StandardParams(Enum):
         "Case for semantic asymmetry.\n'case1' - F1 has 80% safety, F2 has 20%.\n'case2' - F1 has 20% safety, F2 has 80%.",
         choices=["case1", "case2"]
     )
+    EVOLUTION_MODE = Choice(
+        "Evolutionary relation to test.\n'r1' - F1 => F2.\n'r2' - F2 => F1.\n'r3' - F1 ^ ~F2.\n'r4' - F1 ^ F2.",
+        choices=["r1", "r2", "r3", "r4"],
+    )
+    MODIFICATION_PERCENT = Float("Percentage of clauses to modify (e.g. 5, 10, 20, 50).", min_value=0, max_value=100)
