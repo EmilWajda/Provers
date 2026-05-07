@@ -6,7 +6,7 @@ _BIGGER_THAN_ZERO = 1e-10
 
 class StandardParams(Enum):
     CLAUSES = Integer("Number of all clauses in the formula.", min_value=2)
-    LENGTHS = IntegerList("List of clause lengths to be used in the formula.", min_length=2, min_value=1)
+    LENGTHS = IntegerList("List of clause lengths to be used in the formula.", min_length=2, min_value=2)
     LAMBDA = Float("Lambda parameter for the Poisson distribution.", min_value=_BIGGER_THAN_ZERO)
     RATIO = Float("Ratio parameter affecting number of atoms.", min_value=_BIGGER_THAN_ZERO)
     LENGTH = Integer("Length of each clause in the formula.", min_value=2)
