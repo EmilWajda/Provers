@@ -23,3 +23,9 @@ class StandardParams(Enum):
         "Mode of the problem.\n'contradictory' - formulas are contradictory.\n'subcontrary' - formulas are subcontrary.\n'subalternated' - formulas are subalternated.",
         choices=["contradictory", "subcontrary", "subalternated"],
     )
+    CLAUSES_F1 = Integer("Number of clauses for F1 (structural asymmetry).", min_value=2)
+    CLAUSES_F2 = Integer("Number of clauses for F2 (structural asymmetry).", min_value=2)
+    SEMANTIC_CASE = Choice(
+        "Case for semantic asymmetry.\n'case1' - F1 has 80% safety, F2 has 20%.\n'case2' - F1 has 20% safety, F2 has 80%.",
+        choices=["case1", "case2"]
+    )
