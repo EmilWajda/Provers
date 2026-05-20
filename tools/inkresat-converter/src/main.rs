@@ -17,13 +17,25 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     };
     let mut parser = TPTPIterator::<Error<_>>::new(&bytes);
+    println!("begin");
+    let mut first = true;
     for input in &mut parser {
+        if !first {
+            println!("&");
+        }
+        first = false;
+
         if let Ok(formula) = input {
-            println!("{formula}");
+            if let Some(mapped) = inkresat_converter::map_formula_to_inkresat(&formula) {
+                println!("({mapped})");
+            } else {
+                return ExitCode::FAILURE;
+            }
         } else {
             eprintln!("Error parsing formula");
             return ExitCode::FAILURE;
         }
     }
+    println!("end");
     ExitCode::SUCCESS
 }

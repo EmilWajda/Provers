@@ -20,6 +20,7 @@ const resultStatusClassMap: { [key: string]: string } = {
   unsatisfiable: "bg-red-100 text-red-700",
   unknown: "bg-yellow-100 text-yellow-700",
   timeout: "bg-gray-100 text-gray-700",
+  unconverted: "bg-yellow-100 text-yellow-700",
   ongoing: "bg-gray-50 text-gray-400",
 };
 
