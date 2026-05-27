@@ -65,7 +65,7 @@ function extractAllParameters(problems: ProblemFileList, problemTypes: ProblemTy
     }
   }
 
-  return Array.from(paramSet).sort((a, b) => a.localeCompare(b));
+  return Array.from(paramSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 }
 
 function getParameterValue(problem: ProblemFileList[string], paramName: string): number | null {

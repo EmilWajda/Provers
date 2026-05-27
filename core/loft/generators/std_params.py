@@ -39,3 +39,12 @@ class StandardParams(Enum):
         "Relation to test for redundancy.\n't1' - Equivalence: F => F' and F' => F.\n't2' - Strengthening: F' => F.\n't3' - Weakening: F => F'.\n't4' - Co-satisfiability: F ^ F'.",
         choices=["t1", "t2", "t3", "t4"],
     )
+    DEGRADATION_PERCENT = Float("Percentage of clauses to remove (e.g. 5, 10, 25, 50).", min_value=0, max_value=100)
+    DEGRADATION_VARIANT = Choice(
+        "Variant of clause removal.\n'd1' - Random.\n'd2' - Safety preference.\n'd3' - Liveness preference.",
+        choices=["d1", "d2", "d3"],
+    )
+    MISSING_INFO_MODE = Choice(
+        "Relation to test for missing info (P12).\n'r1' - F => R.\n'r2' - F' => R.\n'r3' - F ^ ~R.\n'r4' - F' ^ ~R.",
+        choices=["r1", "r2", "r3", "r4"],
+    )

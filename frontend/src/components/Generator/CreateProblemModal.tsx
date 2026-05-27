@@ -80,7 +80,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
 
   useEffect(() => {
     if (!isLoading && problemTypes && Object.keys(problemTypes).length > 0 && !selectedType) {
-      const keys = Object.keys(problemTypes).sort();
+      const keys = Object.keys(problemTypes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
       setSelectedType(keys[0]);
     }
   }, [problemTypes, isLoading, selectedType]);
@@ -132,7 +132,7 @@ const CreateProblemModal = ({ onClose, onGenerate }: CreateProblemModalProps) =>
               onChange={(e) => setSelectedType(e.target.value)}
             >
               {Object.keys(problemTypes)
-                .sort()
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
                 .map((t) => (
                   <option key={t} value={t}>
                     {t}

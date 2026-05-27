@@ -30,7 +30,13 @@ export function groupProblems(
   problems: ProblemFileList,
 ): Record<string, { fileName: string; fullPath: string; problem: Problem | null }[]> {
   const groupedProblems: Record<string, { fileName: string; fullPath: string; problem: Problem | null }[]> = {};
-  for (const [path, problem] of Object.entries(problems)) {
+  
+  const sortedPaths = Object.keys(problems).sort((a, b) => 
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+  );
+  
+  for (const path of sortedPaths) {
+    const problem = problems[path];
     const { directory, fileName } = splitPath(path);
     if (!groupedProblems[directory]) groupedProblems[directory] = [];
     groupedProblems[directory].push({ fileName, fullPath: path, problem });
