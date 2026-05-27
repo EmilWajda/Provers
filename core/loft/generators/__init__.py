@@ -10,6 +10,8 @@ from .problem7 import Problem7
 from .problem8 import Problem8
 from .problem9a import Problem9a
 from .problem9b import Problem9b
+from .problem10 import Problem10
+from .problem11 import Problem11
 
 _ALL_PROBLEMS: list[type[Generator]] = [
     Problem1,
@@ -22,6 +24,8 @@ _ALL_PROBLEMS: list[type[Generator]] = [
     Problem8,
     Problem9a,
     Problem9b,
+    Problem10,
+    Problem11,
 ]
 
 KNOWN_PROBLEMS: dict[str, type[Generator]] = {gen.name: gen for gen in _ALL_PROBLEMS}

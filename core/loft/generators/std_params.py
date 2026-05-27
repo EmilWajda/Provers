@@ -34,3 +34,8 @@ class StandardParams(Enum):
         choices=["r1", "r2", "r3", "r4"],
     )
     MODIFICATION_PERCENT = Float("Percentage of clauses to modify (e.g. 5, 10, 20, 50).", min_value=0, max_value=100)
+    REDUNDANCY_PERCENT = Float("Percentage of redundant clauses (e.g. 0, 10, 25, 50).", min_value=0)
+    REDUNDANCY_MODE = Choice(
+        "Relation to test for redundancy.\n't1' - Equivalence: F => F' and F' => F.\n't2' - Strengthening: F' => F.\n't3' - Weakening: F => F'.\n't4' - Co-satisfiability: F ^ F'.",
+        choices=["t1", "t2", "t3", "t4"],
+    )
