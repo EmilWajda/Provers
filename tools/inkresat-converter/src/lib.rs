@@ -1,6 +1,7 @@
 use std::ops::Deref;
 use tptp::{
-    fof::{BinaryAssoc, BinaryFormula, LogicFormula, Quantifier, UnitFormula, UnitaryFormula},
+    common::{NonassocConnective, UnaryConnective},
+    fof::*,
     top::{AnnotatedFormula, TPTPInput},
 };
 
@@ -32,7 +33,30 @@ impl<'a> ParenthesesDroppable<'a> for UnitFormula<'a> {
 }
 
 pub fn map_inner_cnf_to_inkresat(formula: &LogicFormula) -> Option<String> {
-    Some(format!("{formula:?}")) // TODO
+    match formula {
+        // implication
+        LogicFormula::Binary(BinaryFormula::Nonassoc(binary)) if binary.op == NonassocConnective::LRImplies => {
+            let left = map_inner_cnf_to_inkresat(&binary.left.drop_parentheses());
+            let right = map_inner_cnf_to_inkresat(&binary.right.drop_parentheses());
+            if let (Some(left), Some(right)) = (left, right) { Some(format!("({left}) -> ({right})")) } else { None }
+        },
+        // negation
+        LogicFormula::Unary(UnaryFormula::Unary(UnaryConnective, inner)) => {
+            let inner = map_inner_cnf_to_inkresat(&inner.drop_parentheses());
+            inner.map(|inner| format!("~({inner})"))
+        },
+        // predicate
+        LogicFormula::Unitary(UnitaryFormula::Atomic(boxed))
+            if let AtomicFormula::Plain(PlainAtomicFormula(PlainTerm::Function(function, args))) = boxed.deref() =>
+        {
+            let args: String = args.0.iter().map(ToString::to_string).collect();
+            Some(format!("{}{}", function.0, args))
+        },
+        _ => {
+            eprintln!("The formula has unknown structure: {formula:?}");
+            None
+        },
+    }
 }
 
 #[derive(Debug, Clone)]
