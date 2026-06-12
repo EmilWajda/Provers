@@ -13,6 +13,7 @@ _ALL_PROVERS: list[Prover] = [
     Prover("cvc4", basic_result_parser("satisfiable", "unsatisfiable")),
     Prover("cvc5", basic_result_parser("sat", "unsat"), "smt2"),
     Prover("drodi", basic_result_parser("satisfiable", "unsatisfiable")),
+    Prover("inkresat", basic_result_parser("satisfiable", "unsatisfiable"), "inkresat-converter"),
 ]
 
 KNOWN_PROVERS: dict[str, Prover] = {prover.name: prover for prover in _ALL_PROVERS}

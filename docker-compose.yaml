@@ -78,6 +78,12 @@ services:
     container_name: loft-prover-drodi
     profiles: ["tools"]
 
+  inkresat:
+    image: loft-prover-inkresat
+    build: ./provers/inkresat
+    container_name: loft-prover-inkresat
+    profiles: ["tools"]
+
   # TPTP checker and converters
 
   tptp-checker:
@@ -102,4 +108,10 @@ services:
     image: loft-converter-smt2
     build: ./tools/smt2
     container_name: loft-converter-smt2
+    profiles: ["tools"]
+
+  inkresat-converter:
+    image: loft-converter-inkresat
+    build: ./tools/inkresat-converter
+    container_name: loft-converter-inkresat
     profiles: ["tools"]

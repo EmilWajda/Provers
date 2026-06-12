@@ -52,6 +52,34 @@ pub fn map_inner_cnf_to_inkresat(formula: &LogicFormula) -> Option<String> {
             let args: String = args.0.iter().map(ToString::to_string).collect();
             Some(format!("{}{}", function.0, args))
         },
+        // and
+        LogicFormula::Binary(BinaryFormula::Assoc(BinaryAssoc::And(AndFormula(clauses)))) => {
+            let mut result: String = clauses
+                .iter()
+                .filter_map(|c| map_inner_cnf_to_inkresat(&c.drop_parentheses()))
+                .map(|c| format!("({c}) & "))
+                .collect();
+            if result.len() > 3 {
+                result.truncate(result.len() - 3);
+                Some(result)
+            } else {
+                None
+            }
+        },
+        // or
+        LogicFormula::Binary(BinaryFormula::Assoc(BinaryAssoc::Or(OrFormula(clauses)))) => {
+            let mut result: String = clauses
+                .iter()
+                .filter_map(|c| map_inner_cnf_to_inkresat(&c.drop_parentheses()))
+                .map(|c| format!("({c}) | "))
+                .collect();
+            if result.len() > 3 {
+                result.truncate(result.len() - 3);
+                Some(result)
+            } else {
+                None
+            }
+        },
         _ => {
             eprintln!("The formula has unknown structure: {formula:?}");
             None
@@ -88,6 +116,7 @@ impl<'a> Clause<'a> {
                 eprintln!("The formula must be a conjunction of two formulas");
                 return None;
             };
+            // we assume that a liveness clause always starts with ">=" condition and we remove it
             if and.0.len() != 2 || !and.0.first().unwrap().to_string().starts_with(LIVENESS_CONDITION_FUNCTION) {
                 eprintln!(
                     "The first conjunct must be a liveness condition of the form {LIVENESS_CONDITION_FUNCTION}(...)"
