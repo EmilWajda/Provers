@@ -8,6 +8,7 @@ class RunResult(Enum):
     UNSAT = "unsatisfiable"
     UNKNOWN = "unknown"
     TIMEOUT = "timeout"
+    UNCONVERTED = "unconverted"
 
 
 def basic_result_parser(sat: str, unsat: str) -> Callable[[str], RunResult]:

@@ -156,7 +156,7 @@ Kliknięcie **View Report** otwiera szczegółowy widok wybranego benchmarku.
 
 Widok szczegółowy prezentuje tabelę z wynikami dla każdej kombinacji problem × prover:
 
-- **Result** - wynik provera (`SATISFIABLE`, `UNSATISFIABLE`, `UNKNOWN`, `TIMEOUT`),
+- **Result** - wynik provera (`SATISFIABLE`, `UNSATISFIABLE`, `UNKNOWN`, `TIMEOUT`, `UNCONVERTED`),
 - **Real Time** - rzeczywisty czas wykonania w sekundach,
 - **System Time** - czas procesora w sekundach,
 - **Memory** - szczytowe zużycie pamięci w KB.
@@ -165,7 +165,7 @@ Wyniki są kolorowane dla łatwiejszej interpretacji:
 
 - Zielony = `SATISFIABLE`,
 - Czerwony = `UNSATISFIABLE`,
-- Żółty = `UNKNOWN`,
+- Żółty = `UNKNOWN` (np. błąd provera) lub `UNCONVERTED` (nieudana konwersja formatu),
 - Szary = `TIMEOUT` lub w trakcie.
 
 ### Wykresy porównawcze

@@ -33,7 +33,7 @@ class Prover:
         result = self.result_parser(stdout)
         return result, stats
 
-    async def ensure_converted(self, workspace: str, problem_file: str) -> str:
+    async def ensure_converted(self, workspace: str, problem_file: str) -> str | None:
         problem_file = os.path.join(workspace, problem_file)
         if self.converter is None:
             return problem_file
@@ -42,7 +42,9 @@ class Prover:
         converted_file = os.path.join(converted_dir, f"{file_hash}.{self.converter}")
         if not await aos.path.exists(converted_file):
             await aos.makedirs(converted_dir, exist_ok=True)
-            output, _, _ = await run_docker_container(self.converter, problem_file)
+            output, _, ret_code = await run_docker_container(self.converter, problem_file)
+            if ret_code != 0:
+                return None
             async with aiofiles.open(converted_file, "w") as f:
                 await f.write(output)
         return converted_file
@@ -51,4 +53,6 @@ class Prover:
         self, workspace: str, problem_file: str, timeout: int | None = None
     ) -> tuple[RunResult, RunStats | None]:
         converted_file = await self.ensure_converted(workspace, problem_file)
+        if converted_file is None:
+            return RunResult.UNCONVERTED, None
         return await self.run_on_problem_direct(converted_file, timeout)

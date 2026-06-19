@@ -1,0 +1,9 @@
+[package]
+name = "inkresat-converter"
+version = "1.0.0"
+description = "A tool for converting TPTP problems to the InKreSAT format"
+edition = "2024"
+
+[dependencies]
+tptp = "0.31.1"
+nom = "7.1.3"

@@ -1,14 +1,17 @@
 import type { Problem, ProblemFileList } from "./types";
 
-function capitalizeFirstLetter(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function formatParamName(str: string): string {
+  return str
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function PrettyPrintParams({ problemData }: { problemData: Problem | null }) {
   if (!problemData) return <p>Unknown Problem</p>;
   const { problem, params, seed } = problemData;
   const paramsFormatted = Object.entries(params)
-    .map(([key, value]) => `${capitalizeFirstLetter(key)}: ${JSON.stringify(value)}`)
+    .map(([key, value]) => `${formatParamName(key)}: ${JSON.stringify(value)}`)
     .join(", ");
   return (
     <>

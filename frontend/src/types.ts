@@ -48,7 +48,7 @@ export type RunStats = {
 export type ResultCell = {
   problem: string;
   prover: string;
-  result: "satisfiable" | "unsatisfiable" | "unknown" | "timeout" | null; // null means not finished yet
+  result: "satisfiable" | "unsatisfiable" | "unknown" | "timeout" | "unconverted" | null; // null means not finished yet
   stats: RunStats | null;
 };
 

@@ -1,7 +1,7 @@
 FROM nixos/nix:2.34.4
 
 RUN nix-channel --add \
-    https://github.com/NixOS/nixpkgs/archive/46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9.tar.gz \
+    https://github.com/NixOS/nixpkgs/archive/9ae611a455b90cf061d8f332b977e387bda8e1ca.tar.gz \
     nixpkgs
 RUN nix-channel --update
 
