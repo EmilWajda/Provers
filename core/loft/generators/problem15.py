@@ -49,41 +49,44 @@ class Problem15(Generator):
         # pobieramy 4 unikalne atomy do budowy łańcucha wnioskowania
         A, B, C, D = self.random.sample(atom_names, 4)
         
-        # helpery do czytelnego budowania surowych tokenów tptp
+        # helpery do precyzyjnego budowania tokenów
         def atom(name): return Atom(name, "U")
         def not_atom(name): return Not(Atom(name, "U"))
-        def alt(*tokens): return Alternative(list(tokens))
+        def impl(p, c): return Implication(p, c)
         def forall(token): return ForAll("U", token)
 
         if c_type == "c1":
+            # C1: bezposrednie (A oraz ~A)
             if c_depth == "v1":
-                return [forall(alt(atom(A))), forall(alt(not_atom(A)))]
+                return [forall(atom(A)), forall(not_atom(A))]
             elif c_depth == "v2":
-                return [forall(alt(atom(A))), forall(alt(not_atom(A), atom(B))), forall(alt(not_atom(B)))]
+                return [forall(atom(A)), forall(impl(atom(A), atom(B))), forall(not_atom(B))]
             else: # v3
-                return [forall(alt(atom(A))), forall(alt(not_atom(A), atom(B))), forall(alt(not_atom(B), atom(C))), forall(alt(not_atom(C)))]
+                return [forall(atom(A)), forall(impl(atom(A), atom(B))), forall(impl(atom(B), atom(C))), forall(not_atom(C))]
                 
         elif c_type == "c2":
+            # C2: warunkowe (A => B oraz A => ~B)
             if c_depth == "v1":
-                return [forall(alt(atom(A))), forall(alt(not_atom(A), atom(B))), forall(alt(not_atom(A), not_atom(B)))]
+                return [forall(atom(A)), forall(impl(atom(A), atom(B))), forall(impl(atom(A), not_atom(B)))]
             elif c_depth == "v2":
-                return [forall(alt(atom(A))), forall(alt(not_atom(A), atom(B))), forall(alt(not_atom(B), atom(C))), forall(alt(not_atom(A), not_atom(C)))]
+                return [forall(atom(A)), forall(impl(atom(A), atom(B))), forall(impl(atom(B), atom(C))), forall(impl(atom(A), not_atom(C)))]
             else: # v3
-                return [forall(alt(atom(A))), forall(alt(not_atom(A), atom(B))), forall(alt(not_atom(B), atom(C))), forall(alt(not_atom(C), atom(D))), forall(alt(not_atom(A), not_atom(D)))]
+                return [forall(atom(A)), forall(impl(atom(A), atom(B))), forall(impl(atom(B), atom(C))), forall(impl(atom(C), atom(D))), forall(impl(atom(A), not_atom(D)))]
                 
         elif c_type == "c3":
+            # C3: behawioralne (safety vs liveness)
             def liveness(pre, cons):
                 return ForAll("U", Exists("V", Conjunction([
                     GreaterThan("U", "V"),
-                    Implication(Alternative([Atom(pre, "V")]), Alternative([Atom(cons, "U")]))
+                    Implication(Atom(pre, "V"), Atom(cons, "U"))
                 ])))
                 
             if c_depth == "v1":
-                return [forall(alt(atom(A))), liveness(A, B), forall(alt(not_atom(B)))]
+                return [forall(atom(A)), liveness(A, B), forall(not_atom(B))]
             elif c_depth == "v2":
-                return [forall(alt(atom(A))), liveness(A, B), forall(alt(not_atom(B), atom(C))), forall(alt(not_atom(C)))]
+                return [forall(atom(A)), liveness(A, B), forall(impl(atom(B), atom(C))), forall(not_atom(C))]
             else: # v3
-                return [forall(alt(atom(A))), liveness(A, B), forall(alt(not_atom(B), atom(C))), forall(alt(not_atom(C), atom(D))), forall(alt(not_atom(D)))]
+                return [forall(atom(A)), liveness(A, B), forall(impl(atom(B), atom(C))), forall(impl(atom(C), atom(D))), forall(not_atom(D))]
         
         return []
 

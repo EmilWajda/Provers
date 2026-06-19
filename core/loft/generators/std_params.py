@@ -70,3 +70,11 @@ class StandardParams(Enum):
         "Depth/Structural variant of conflict.\n'v1' - Local.\n'v2' - Near.\n'v3' - Distributed.",
         choices=["v1", "v2", "v3"],
     )
+    CHAIN_LENGTH = Integer("Length of the implication chain (k).", min_value=2)
+    IMPLICATION_MODE = Choice(
+        "Relation to test for implication chains (P16).\n't1' - Transitivity: F => (A_1 => A_k).\n't2' - Inconsistency: F ^ A_1 ^ ~A_k.",
+        choices=["t1", "t2"],
+    )
+    HORN_PERCENT = Float("Percentage of Horn clauses (e.g. 100, 75, 50, 25, 0).", min_value=0, max_value=100)
+    ATOMS = Integer("Number of atoms (n) for phase transition.", min_value=2)
+    ALPHA = Float("Ratio of clauses to atoms (alpha = m/n).", min_value=0.1)

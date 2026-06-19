@@ -23,6 +23,9 @@ class Problem13(Generator):
     }
 
     def validate_extra(self) -> str | None:
+        variant: str = self.params.get("topology_variant")  # type: ignore
+        if variant not in ["g1", "g2", "g3", "g4", "g5"]:
+            return f"Topology variant '{variant}' is not supported. Use 'g1', 'g2', 'g3', 'g4', or 'g5'."
         return None
 
     def generate(self) -> list[LogicToken]:
@@ -38,7 +41,7 @@ class Problem13(Generator):
             # gęsty: zbiór radykalnie mniejszy (np. pierwiastek z liczby klauzul)
             num_atoms = max(3, int(total_clauses ** 0.5))
         else:
-            # g3, g4, g5
+            # g3, g4, g5: standardowo
             num_atoms = max(3, total_clauses // 2)
 
         atom_names = [f"var{i+1}" for i in range(num_atoms)]
@@ -47,7 +50,7 @@ class Problem13(Generator):
         unused_atoms = list(atom_names)
         self.random.shuffle(unused_atoms)
 
-        # 2. struktury pomocnicze określające pulę powiązań (edges) dla konkretnych grafów
+        # 2. struktury pomocnicze określające pulę powiązań (edges)
         levels = []
         if variant == "g3":
             num_levels = max(2, num_atoms // 5)
@@ -78,34 +81,42 @@ class Problem13(Generator):
 
         clause_assignments: List[List[str]] = []
 
-        # 4. przydzielanie atomów zachowując topologię
+        # 4. przydzielanie atomów zachowując rygorystycznie topologię
         for i, length in enumerate(target_lengths):
             chosen: List[str] = []
 
-            # a) ustalanie dozwolonej puli (pool) na podstawie topologii
+            # a) ustalanie dozwolonej puli (pool) i pre-wypełnianie
             if variant == "g4":
                 if i < num_bridges:
-                    # most (10%): łączy co najmniej dwa różne klastry
+                    # most (10%): musi połączyć co najmniej dwa klastry
                     c1, c2 = self.random.sample(range(len(clusters)), 2)
+                    chosen.extend([self.random.choice(clusters[c1]), self.random.choice(clusters[c2])])
                     pool = clusters[c1] + clusters[c2]
                 else:
                     # wewnątrz-klastrowe (90%)
                     c = self.random.randint(0, len(clusters) - 1)
                     pool = clusters[c]
             elif variant == "g3":
-                # drzewo: łączy atom z poziomu k z k+1
+                # drzewo: musi połączyć poziom k z k+1
                 lvl = self.random.randint(0, len(levels) - 2)
+                chosen.extend([self.random.choice(levels[lvl]), self.random.choice(levels[lvl+1])])
                 pool = levels[lvl] + levels[lvl+1]
             else:
                 pool = atom_names
 
             # b) wymuszanie węzła centralnego dla g5
             if variant == "g5":
-                chosen.append(hub_atom)
-                if hub_atom in unused_atoms:
-                    unused_atoms.remove(hub_atom)
-                # nie losujemy więcej huba
-                pool = [x for x in pool if x != hub_atom]
+                if hub_atom not in chosen:
+                    chosen.append(hub_atom)
+
+            chosen = list(set(chosen)) # usunięcie ewentualnych duplikatów z wymuszania
+
+            # usunięcie wybranych z unused_atoms
+            for c_atom in chosen:
+                if c_atom in unused_atoms:
+                    unused_atoms.remove(c_atom)
+            
+            pool = [x for x in pool if x not in chosen]
 
             # c) priorytetowe ściąganie atomów z puli, które jeszcze nigdy nie wystąpiły
             pool_unused = [a for a in pool if a in unused_atoms]
@@ -113,53 +124,39 @@ class Problem13(Generator):
                 a = pool_unused.pop()
                 chosen.append(a)
                 unused_atoms.remove(a)
+                pool.remove(a)
 
             # d) uzupełnianie brakujących miejsc losowo z dozwolonej puli
             needed = length - len(chosen)
-            remaining = [a for a in pool if a not in chosen]
-
-            if len(remaining) >= needed:
-                chosen.extend(self.random.sample(remaining, needed))
-            else:
-                chosen.extend(remaining)
-                # jeśli długość wymaga więcej literałów niż unikalnych atomów w puli (np. dense graph), pozwalamy na duplikaty
-                while len(chosen) < length and pool:
-                    chosen.append(self.random.choice(pool))
+            if needed > 0:
+                if len(pool) >= needed:
+                    chosen.extend(self.random.sample(pool, needed))
+                else:
+                    chosen.extend(pool)
+                    full_pool = pool + chosen
+                    if not full_pool: 
+                        full_pool = atom_names
+                    while len(chosen) < length:
+                        chosen.append(self.random.choice(full_pool))
 
             clause_assignments.append(chosen)
 
-        # 5. post-processing: wciskanie resztek nieużywanych atomów do pasujących klauzul (kod defensywny)
+        # 5. post-processing: bezpieczne lokowanie resztek w celu zachowania topologii (kod defensywny)
         for a in unused_atoms:
             if variant == "g3":
                 lvl_a = next(j for j, l in enumerate(levels) if a in l)
-                pool_idx = max(0, lvl_a - 1)
-                pool = levels[pool_idx] + levels[pool_idx+1]
+                candidates = [idx for idx, assign in enumerate(clause_assignments) if any(x in levels[lvl_a] for x in assign)]
             elif variant == "g4":
                 c_a = next(j for j, c in enumerate(clusters) if a in c)
-                pool = clusters[c_a]
+                candidates = [idx for idx, assign in enumerate(clause_assignments) if any(x in clusters[c_a] for x in assign)]
             else:
-                pool = atom_names
+                candidates = list(range(total_clauses))
 
-            # nadpisujemy całkowicie losową klauzulę
-            idx = self.random.randint(0, total_clauses - 1)
-            length = target_lengths[idx]
-            chosen = [a]
-            
-            if variant == "g5" and a != hub_atom:
-                chosen.append(hub_atom)
-                pool = [x for x in pool if x != hub_atom]
-
-            needed = length - len(chosen)
-            remaining = [x for x in pool if x not in chosen]
-            
-            if len(remaining) >= needed:
-                chosen.extend(self.random.sample(remaining, needed))
+            if candidates:
+                idx = self.random.choice(candidates)
+                clause_assignments[idx].append(a)
             else:
-                chosen.extend(remaining)
-                while len(chosen) < length and pool:
-                    chosen.append(self.random.choice(pool))
-                    
-            clause_assignments[idx] = chosen
+                clause_assignments[0].append(a)
 
         # 6. budowanie finalnych tokenów w oparciu o przypisane atomy (rygor 50:50)
         clauses: List[LogicToken] = []
@@ -172,7 +169,6 @@ class Problem13(Generator):
             if is_safety:
                 clauses.append(self._generate_safety_clause(length, chosen_atoms))
             else:
-                # liveness potrzebuje min. długości 2
                 if length < 2:
                     chosen_atoms.append(chosen_atoms[0]) 
                 clauses.append(self._generate_liveness_clause(max(2, length), chosen_atoms))
