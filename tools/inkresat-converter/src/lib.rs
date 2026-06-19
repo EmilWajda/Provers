@@ -87,6 +87,21 @@ pub fn map_inner_cnf_to_inkresat(formula: &LogicFormula) -> Option<String> {
     }
 }
 
+fn map_liveness_to_inkresat(formula: &LogicFormula) -> Option<String> {
+    match formula {
+        LogicFormula::Binary(BinaryFormula::Nonassoc(binary)) if binary.op == NonassocConnective::LRImplies => {
+            let left = map_inner_cnf_to_inkresat(&binary.left.drop_parentheses());
+            let right = map_inner_cnf_to_inkresat(&binary.right.drop_parentheses());
+            if let (Some(left), Some(right)) = (left, right) {
+                Some(format!("((~([{r}] ({left}))) | (({right}) & (<{r}> true)))", r = INKRESAT_RELATION))
+            } else {
+                None
+            }
+        },
+        _ => map_inner_cnf_to_inkresat(formula).map(|res| format!("<{}> {}", INKRESAT_RELATION, res)),
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Clause<'a> {
     Liveness(LogicFormula<'a>),
@@ -131,12 +146,8 @@ impl<'a> Clause<'a> {
 
     pub fn to_inkresat(&self) -> Option<String> {
         match self {
-            Clause::Liveness(formula) => {
-                map_inner_cnf_to_inkresat(formula).map(|res| format!("<{}> {}", INKRESAT_RELATION, res))
-            },
-            Clause::Safety(formula) => {
-                map_inner_cnf_to_inkresat(formula).map(|res| format!("[{}] {}", INKRESAT_RELATION, res))
-            },
+            Clause::Liveness(formula) => map_liveness_to_inkresat(formula),
+            Clause::Safety(formula) => map_inner_cnf_to_inkresat(formula),
         }
     }
 }
