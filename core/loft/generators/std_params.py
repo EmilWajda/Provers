@@ -48,3 +48,25 @@ class StandardParams(Enum):
         "Relation to test for missing info (P12).\n'r1' - F => R.\n'r2' - F' => R.\n'r3' - F ^ ~R.\n'r4' - F' ^ ~R.",
         choices=["r1", "r2", "r3", "r4"],
     )
+    TOPOLOGY_VARIANT = Choice(
+        "Topology variant for Problem 13.\n'g1' - Sparse.\n'g2' - Dense.\n'g3' - Tree-like.\n'g4' - Modular.\n'g5' - Hub.",
+        choices=["g1", "g2", "g3", "g4", "g5"],
+    )
+    MODULES_COUNT = Integer("Number of modules (e.g. 2, 3, 5).", min_value=2)
+    COUPLING_VARIANT = Choice(
+        "Coupling variant for modules.\n'c1' - Independent (0%).\n'c2' - Weakly coupled (10%).\n'c3' - Medium coupled (25%).\n'c4' - Strongly coupled (50%).",
+        choices=["c1", "c2", "c3", "c4"],
+    )
+    MODULAR_MODE = Choice(
+        "Relation to test for modularity (P14).\n'locality' - M_i => R.\n'globality' - G => R.\n'co-sat' - G ^ R.",
+        choices=["locality", "globality", "co-sat"],
+    )
+    CONFLICT_PERCENT = Float("Percentage of clauses involved in conflicts.", min_value=0, max_value=100)
+    CONFLICT_TYPE = Choice(
+        "Type of conflict (P15).\n'c1' - Direct.\n'c2' - Conditional.\n'c3' - Behavioral.",
+        choices=["c1", "c2", "c3"],
+    )
+    CONFLICT_DEPTH = Choice(
+        "Depth/Structural variant of conflict.\n'v1' - Local.\n'v2' - Near.\n'v3' - Distributed.",
+        choices=["v1", "v2", "v3"],
+    )
