@@ -34,6 +34,10 @@ impl<'a> ParenthesesDroppable<'a> for UnitFormula<'a> {
 
 pub fn map_inner_cnf_to_inkresat(formula: &LogicFormula) -> Option<String> {
     match formula {
+        // quantifier
+        LogicFormula::Unitary(UnitaryFormula::Quantified(quantifier)) => {
+            Clause::from_formula(quantifier).and_then(|c| c.to_inkresat())
+        },
         // implication
         LogicFormula::Binary(BinaryFormula::Nonassoc(binary)) if binary.op == NonassocConnective::LRImplies => {
             let left = map_inner_cnf_to_inkresat(&binary.left.drop_parentheses());
@@ -50,7 +54,9 @@ pub fn map_inner_cnf_to_inkresat(formula: &LogicFormula) -> Option<String> {
             if let AtomicFormula::Plain(PlainAtomicFormula(PlainTerm::Function(function, args))) = boxed.deref() =>
         {
             let args: String = args.0.iter().map(ToString::to_string).collect();
-            Some(format!("{}{}", function.0, args))
+            let mut full_name = format!("{}{}", function.0, args);
+            full_name.retain(|c| c.is_ascii_alphanumeric());
+            Some(full_name)
         },
         // and
         LogicFormula::Binary(BinaryFormula::Assoc(BinaryAssoc::And(AndFormula(clauses)))) => {
@@ -109,11 +115,7 @@ pub enum Clause<'a> {
 }
 
 impl<'a> Clause<'a> {
-    pub fn from_formula(formula: &'a LogicFormula) -> Option<Self> {
-        let LogicFormula::Unitary(UnitaryFormula::Quantified(quantifier)) = formula.drop_parentheses() else {
-            eprintln!("Only quantified formulas are supported");
-            return None;
-        };
+    pub fn from_formula(quantifier: &'a QuantifiedFormula) -> Option<Self> {
         if quantifier.quantifier != Quantifier::Forall {
             eprintln!("The first quantifier can only be '!' (for all)");
             return None;
@@ -165,7 +167,7 @@ pub fn map_formula_to_inkresat(formula: &TPTPInput) -> Option<String> {
     let inner_formula = &inner_formula.0;
     let role = inner_formula.role.0.0;
     if role == "axiom" {
-        Clause::from_formula(&inner_formula.formula.0).and_then(|c| c.to_inkresat())
+        map_inner_cnf_to_inkresat(&inner_formula.formula.0.drop_parentheses())
     } else {
         eprintln!("Only axioms are supported, found role: {role}");
         None
