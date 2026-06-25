@@ -84,17 +84,19 @@ Po uruchomieniu aplikacji należy najpierw utworzyć lub wybrać przestrzeń rob
 znajduje się przycisk "Create Workspace" służący do utworzenia nowego workspace.
 Po utworzeniu pojawi się na liście i można go rozwinąć, aby zobaczyć dostępne zakładki:
 **Settings**, **Generator**, **Benchmark** oraz **Results**.
+Przestrzeni roboczej można zmienić nazwę (ikona ołówka) lub ją usunąć (ikona kosza z potwierdzeniem).
 
 ### Konfiguracja ustawień (Settings)
 
 ![Widok ustawień workspace](images/settings.png)
 
-Zakładka **Settings** umożliwia konfigurację dwóch kluczowych parametrów:
+Zakładka **Settings** umożliwia konfigurację następujących parametrów:
 
 - **Seed Configuration** - wybór między losowym seedem (każde generowanie da inne wyniki)
   a stałym seedem (powtarzalne eksperymenty),
 - **Prover Timeout** - maksymalny czas w sekundach, jaki prover ma na rozwiązanie problemu.
-  Po przekroczeniu tego czasu wynik zostanie oznaczony jako `TIMEOUT`.
+  Po przekroczeniu tego czasu wynik zostanie oznaczony jako `TIMEOUT`,
+- **Enable Generator Checks** - opcjonalne sprawdzanie składni TPTP wygenerowanych plików, domyślnie włączone.
 
 Po wprowadzeniu zmian należy kliknąć przycisk **Save Settings**.
 
@@ -104,7 +106,7 @@ Po wprowadzeniu zmian należy kliknąć przycisk **Save Settings**.
 
 Zakładka **Generator** wyświetla listę wszystkich wygenerowanych problemów w danym workspace,
 pogrupowanych według typu problemu. Każdy problem pokazuje swoje parametry oraz seed użyty do generowania.
-Problemy można usuwać klikając ikonę kosza.
+Problemom można zmieniać nazwę (ikona ołówka) lub je usuwać (ikona kosza).
 
 Aby wygenerować nowy problem, należy kliknąć przycisk **Generate Problems** w prawym górnym rogu.
 
@@ -112,7 +114,7 @@ Aby wygenerować nowy problem, należy kliknąć przycisk **Generate Problems** 
 
 Otworzy się modal z formularzem, w którym można:
 
-1. **Wybrać typ problemu** - z listy rozwijanej (Problem 1-8),
+1. **Wybrać typ problemu** - z listy rozwijanej (Problem 1-18, w tym 9a i 9b),
 2. **Wybrać preset** - predefiniowany zestaw parametrów (np. Default, Short, Long),
 3. **Dostosować parametry** - każdy typ problemu ma swoje specyficzne parametry,
    takie jak liczba klauzul, długości klauzul, rozkład itp.
@@ -134,7 +136,7 @@ Zakładka **Benchmark** służy do konfiguracji i uruchamiania testów wydajnoś
 
 **Wybór proverów:**
 
-- Na dole ekranu znajduje się lista checkboxów z dostępnymi proverami (Vampire, SPASS, E, iProver, Prover9, Z3, CVC4, CVC5, Drodi),
+- Na dole ekranu znajduje się lista checkboxów z dostępnymi proverami (Vampire, SPASS, E, iProver, Prover9, Z3, CVC4, CVC5, Drodi, InKreSAT),
 - Należy zaznaczyć co najmniej jeden prover.
 
 Po wybraniu problemów i proverów kliknięcie **Run Benchmark** uruchomi testy.
@@ -146,11 +148,13 @@ Aplikacja automatycznie przejdzie do zakładki Results i będzie wyświetlać wy
 
 Zakładka **Results** wyświetla listę wszystkich przeprowadzonych benchmarków z informacjami:
 
-- Data/ID benchmarku,
+- Data/ID benchmarku (lub "Ongoing..." dla trwających),
 - Lista użytych proverów,
-- Liczba testowanych problemów.
+- Liczba testowanych problemów (z tooltipem wyświetlającym wszystkie ścieżki).
 
 Kliknięcie **View Report** otwiera szczegółowy widok wybranego benchmarku.
+Dla zakończonych benchmarków dostępne są także przyciski **Rename** oraz **Delete** umożliwiające
+zmianę nazwy pliku lub usunięcie wyniku.
 
 ![Szczegółowy widok wyników](images/results.png)
 
@@ -205,7 +209,7 @@ Każdy katalog reprezentuje jedną przestrzeń roboczą, w której mogą być pr
 wyniki benchmarków. Struktura katalogu przestrzeni roboczej jest następująca:
 
 - `settings.json` - plik konfiguracyjny przestrzeni roboczej, zawierający informacje o seedzie generatora
-  formuł oraz czasie przerwania działania proverów (timeout) - opcjonalny,
+  formuł, czasie przerwania działania proverów (timeout) oraz opcjonalnej fladze sprawdzania składni,
 - `problem_1/`, `problem_2/`, ... - podkatalogi reprezentujące poszczególne typy problemów logicznych,
   zawierające jedynie pliki w formacie TPTP - nazwy plików są bez znaczenia, ważne jest jedynie rozszerzenie
   oraz ich zawartość z poprawnym komentarzem zawierającym informacje o parametrach generatora,
@@ -306,7 +310,7 @@ Pakiet zawierający logikę generowania problemów logicznych:
 - `param_spec.py` - specyfikacje typów parametrów (`Integer`, `Float`, `Boolean`, `Choice`, `IntegerList`)
   z walidacją i serializacją,
 - `std_params.py` - predefiniowane, często używane parametry jako enum `StandardParams`,
-- `problem1.py` - `problem8.py` - konkretne implementacje generatorów dla 8 różnych typów problemów logicznych.
+- `problem1.py` - `problem18.py` - konkretne implementacje generatorów dla 18 różnych typów problemów logicznych (w tym `problem9a.py` i `problem9b.py`).
 
 Każdy generator definiuje:
 
@@ -347,7 +351,7 @@ REST API aplikacji zbudowane na frameworku Quart:
 
 - `__init__.py` - inicjalizacja aplikacji Quart, rejestracja tras, endpoint `/api/provers`,
 - `workspaces.py` - zarządzanie przestrzeniami roboczymi (CRUD),
-- `settings.py` - odczyt/zapis ustawień workspace (seed, timeout),
+- `settings.py` - odczyt/zapis ustawień workspace (seed, timeout, check),
 - `problems.py` - zarządzanie problemami (lista, generowanie, usuwanie),
 - `results.py` - zarządzanie benchmarkami (lista, tworzenie, WebSocket do streamingu wyników).
 
@@ -358,15 +362,19 @@ REST API aplikacji zbudowane na frameworku Quart:
 | GET    | `/api/provers`                  | Lista dostępnych proverów       |
 | GET    | `/api/workspaces`               | Lista workspace'ów              |
 | POST   | `/api/workspaces`               | Tworzenie workspace             |
+| PUT    | `/api/workspaces`               | Zmiana nazwy workspace          |
 | DELETE | `/api/workspaces`               | Usuwanie workspace              |
 | GET    | `/api/workspaces/<ws>/settings` | Ustawienia workspace            |
 | PUT    | `/api/workspaces/<ws>/settings` | Aktualizacja ustawień           |
 | GET    | `/api/problems`                 | Definicje typów problemów       |
 | GET    | `/api/workspaces/<ws>/problems` | Lista problemów w workspace     |
 | POST   | `/api/workspaces/<ws>/problems` | Generowanie problemu            |
+| PUT    | `/api/workspaces/<ws>/problems` | Zmiana nazwy pliku problemu     |
 | DELETE | `/api/workspaces/<ws>/problems` | Usuwanie problemu               |
 | GET    | `/api/workspaces/<ws>/results`  | Lista benchmarków               |
 | POST   | `/api/workspaces/<ws>/results`  | Uruchomienie benchmarku         |
+| PUT    | `/api/workspaces/<ws>/results`  | Zmiana nazwy wyniku benchmarku  |
+| DELETE | `/api/workspaces/<ws>/results`  | Usuwanie wyniku benchmarku      |
 | WS     | `/ws/workspaces/<ws>/results`   | WebSocket do streamingu wyników |
 
 ## Frontend aplikacji
@@ -379,13 +387,13 @@ Kod źródłowy znajduje się w katalogu `frontend/src/`.
 
 Plik `package.json` definiuje następujące główne zależności:
 
-- **React** (`^19.2.0`) - biblioteka do budowania interfejsów użytkownika,
-- **@tanstack/react-query** (`^5.90.17`) - zarządzanie stanem serwera, cache'owanie zapytań i mutacje,
-- **axios** (`^1.13.2`) - klient HTTP do komunikacji z API,
+- **React** - biblioteka do budowania interfejsów użytkownika,
+- **@tanstack/react-query** - zarządzanie stanem serwera, cache'owanie zapytań i mutacje,
+- **axios** - klient HTTP do komunikacji z API,
 - **chart.js** + **react-chartjs-2** - biblioteka do tworzenia wykresów,
-- **lucide-react** (`^0.555.0`) - ikony w stylu Lucide,
-- **react-use-websocket** (`^4.13.0`) - hook do obsługi WebSocket,
-- **TailwindCSS** (`^3.4.18`) - framework CSS utility-first.
+- **lucide-react** - ikony w stylu Lucide,
+- **react-use-websocket** - hook do obsługi WebSocket,
+- **TailwindCSS** - framework CSS utility-first.
 
 Zależności deweloperskie obejmują TypeScript, ESLint oraz Vite.
 
@@ -415,7 +423,7 @@ Pasek boczny aplikacji:
 
 - `Sidebar.tsx` - główny kontener z listą workspace'ów,
 - `SidebarHeader.tsx` - nagłówek z logo LOFT,
-- `WorkspaceItem.tsx` - element listy z rozwijalnymi zakładkami,
+- `WorkspaceItem.tsx` - element listy z rozwijalnymi zakładkami, możliwością zmiany nazwy i usuwania,
 - `SidebarTab.tsx` - pojedyncza zakładka (Settings, Generator, Benchmark, Results),
 - `CreateWorkspace.tsx` - formularz tworzenia nowego workspace.
 
@@ -423,12 +431,13 @@ Pasek boczny aplikacji:
 
 - `SettingsView.tsx` - widok ustawień workspace:
   - konfiguracja seeda generatora (losowy/stały),
-  - ustawienie timeoutu dla proverów.
+  - ustawienie timeoutu dla proverów,
+  - przełącznik sprawdzania składni TPTP przy generowaniu.
 
 #### Komponenty Generator (`components/Generator/`)
 
 - `GeneratorView.tsx` - główny widok zakładki Generator z listą problemów i przyciskiem generowania,
-- `ProblemList.tsx` - lista wygenerowanych problemów pogrupowana według typu,
+- `ProblemList.tsx` - lista wygenerowanych problemów pogrupowana według typu, z możliwością zmiany nazwy i usuwania,
 - `CreateProblemModal.tsx` - modal do tworzenia nowego problemu:
   - wybór typu problemu,
   - konfiguracja parametrów z presetami,
@@ -443,7 +452,7 @@ Pasek boczny aplikacji:
 
 #### Komponenty Results (`components/Results/`)
 
-- `ResultListView.tsx` - lista wszystkich benchmarków w workspace z możliwością przeglądania szczegółów,
+- `ResultListView.tsx` - lista wszystkich benchmarków w workspace z możliwością przeglądania szczegółów, zmiany nazwy i usuwania,
 - `ResultView.tsx` - szczegółowy widok pojedynczego benchmarku:
   - tabela wyników (problem × prover),
   - statystyki wykonania (czas, pamięć),
@@ -465,7 +474,7 @@ Własne hooki React do zarządzania stanem i komunikacji z API:
 - `useWorkspaces.tsx` - hook do CRUD na workspace'ach,
 - `useProblems.tsx` - hook do zarządzania problemami (lista, generowanie, usuwanie),
 - `useProblemTypes.tsx` - hook pobierający definicje typów problemów z API,
-- `useMutationNotify.tsx` - wrapper na `useMutation` z automatycznymi powiadomieniami.
+- `useMutationNotify.tsx` - wrapper na `useMutation` z automatycznymi powiadomieniami o sukcesie/błędzie.
 
 ### Narzędzia pomocnicze (`utils.tsx`)
 
@@ -514,7 +523,12 @@ Lista wspieranych proverów wraz z ich krótkim opisem:
 - [Drodi](https://tptp.org/CASC/29/SystemDescriptions.html#Drodi---3.5.1):
   - brak jakiegokolwiek kodu źródłowego lub paczki w `nixpkgs`,
   - plik wykonywalny pobierany z repozytorium GitHub projektu [StarExec](https://github.com/StarExecMiami/StarExec-ARC/tree/master/provers-containerised/provers/Drodi---3.6.0), pobierany automatycznie przy budowie za pomocą Nixa,
-  - przyjmuje formuły w formacie TPTP.
+  - przyjmuje formuły w formacie TPTP,
+- [InKreSAT](https://www.ps.uni-saarland.de/~kaminski/inkresat/):
+  - wersja z własnego pliku `.nix`, budowana ze źródeł,
+  - przyjmuje formuły w formacie własnym,
+  - jest to prover formuł logiki modalnej, a nie FOF jak reszta,
+  - używany jest konwerter napisany w `tools/inkresat-converter`.
 
 ## Informacje o narzędziach
 
@@ -545,3 +559,247 @@ W celu konwersji formuł do formatu SMT-LIB2, wykorzystujemy narzędzie prof. Ge
 Mimo iż pełny pakiet narzędzi TPTP jest dostępny w `nixpkgs`, polega on na pobraniu gotowych plików binarnych
 z serwera strony TPTP, który ewidentnie ma zbyt małą przepustowość (pobieranie trwało nawet kilka godzin).
 W związku z tym dostarczyliśmy własny plik `.nix`, który kompiluje `tptp4X` ze źródeł.
+
+### Konwerter InKreSAT
+
+Konwerter formuł do formatu InKreSAT znajduje się w folderze `tools/inkresat-converter` i jest narzędziem
+napisanym w Rust'cie. Konwertuje on formuły z formatu TPTP na format natywny akceptowany przez prover InKreSAT,
+zachowując przy tym semantykę oryginalnej formuły. Rust został wybrany z podobnych względów jak w przypadku
+narzędzia do sprawdzania składni TPTP.
+
+Konwersja większości operatorów jest trywialna - tłumaczą się one dosłownie na odpowiednie symbole w formacie InKreSAT. 
+Mimo to, warto wyróżnić kilka nietypowych zachowań konwertera:
+
+- kwantyfikatory mają specjalne reguły klasyfikujące je jako klauzule typu "safety" lub "liveness", po czym ich
+  składnia jest zamieniana na równoważne operacje logiki modalnej InKreSATa,
+- predykaty/wywołania funkcji są zamieniane na zwykłe atomy zdaniowe o odpowiednich alfanumerycznych nazwach,
+- konwertowane są tylko wyrażenia typu "axiom".
+
+## Dostępne typy problemów
+
+Poniżej znajduje się lista wszystkich dostępnych typów problemów wraz ze szczegółowym opisem.
+
+---
+
+### P01. Wpływ wielkości formuły na czas/pamięć - równe liczby klauzul tej samej długości
+
+Generujemy formuły testowe składające się z 50, 100, 200, 500, 1000 lub 2000 klauzul. Każda formuła składa się w połowie z klauzul żywotnościowych (liveness) i w połowie z klauzul bezpieczeństwa (safety). Klauzule generowane są o długościach 2, 3, 4, 6, 8, 10 - w równej liczbie dla każdej grupy. Formuły generowane są nad liczbą atomów równą liczbie klauzul podzielonej przez 2.
+
+**Parametry:** `clauses` (int), `lengths` (int list)
+
+---
+
+### P02. Wpływ wielkości formuły na czas/pamięć - rozkład Poissona
+
+Problem podobny do P01, jednak liczba klauzul w poszczególnych grupach długości wynika z rozkładu Poissona o zadanej wartości oczekiwanej lambda (oczekiwana długość klauzuli).
+
+**Parametry:** `clauses` (int), `lambda` (float)
+
+---
+
+### P03. Wpływ wielkości formuły na czas/pamięć - różne stosunki atomów do klauzul
+
+Generujemy formuły testowe o zadanej liczbie klauzul, badając wpływ stosunku liczby atomów do liczby klauzul (wartości 2, 3, 4, 5, 10). Maksymalna długość klauzuli jest ograniczona przez liczbę wszystkich atomów podzieloną przez liczbę klauzul.
+
+**Parametry:** `clauses` (int), `ratio` (float)
+
+---
+
+### P04. Wpływ wielkości formuły na czas/pamięć - stałe długości klauzul
+
+Wszystkie klauzule w formule mają tę samą, stałą długość (kolejno: 2, 3, 4, 5). Badamy wpływ jednolitej długości klauzul na wydajność proverów.
+
+**Parametry:** `clauses` (int), `length` (int)
+
+---
+
+### P05. Wpływ wielkości formuły na czas/pamięć - grupy stałych długości klauzul
+
+Wszystkie klauzule w pojedynczej formule mają stałą długość (1, 5, 10 lub 20). Rozpatrywane są trzy przypadki rozkładu: (a) wszystkie grupy po 25%, (b) klauzule o długości 1 stanowią 1% - reszta po równo, (c) klauzule o długości 20 stanowią 1% - reszta po równo.
+
+**Parametry:** `clauses` (int), `lengths` (int list), `distribution` (choice: even/tiny_short/tiny_long)
+
+---
+
+### P06. Wpływ współczynnika liveness/safety na czas/pamięć
+
+Badamy wpływ proporcji klauzul żywotnościowych do bezpieczeństwa na wydajność. Rozpatrywane stosunki: 90:10, 80:20, 65:35, 50:50, 35:65, 20:80, 10:90. Dostępny jest również wariant z rozkładem Poissona.
+
+**Parametry:** `clauses` (int), `safety_percentage` (float), `poisson` (bool), `lambda` (float), `lengths` (int list)
+
+---
+
+### P07. Łączenie kilku prostych formuł - wpływ na czas/pamięć
+
+Generujemy trzy formuły $F_1, F_2, F_3$ (każda składa się z zadanej liczby klauzul), które łączymy alternatywą lub koniunkcją, otrzymując $G$. Testowaniu poddawana jest formuła $G \Rightarrow R$, gdzie $R$ to prosta klauzula żywotnościowa zbudowana z atomów użytych w $G$. Liczby klauzul dla $F_1, F_2, F_3$: kolejno 50, 100, 200.
+
+**Parametry:** `clauses` (int), `poisson` (bool), `conjunction` (bool), `lambda` (float), `lengths` (int list)
+
+---
+
+### P08. Porównanie formuł - kwadrat logiczny
+
+Generujemy dwie formuły $F_1$ i $F_2$ (liczba klauzul: 50, 100, 200, 500, 1000). Testowane są trzy relacje logiczne:
+
+- **contradictory:** $(F_1 \Rightarrow \neg F_2) \land (\neg F_1 \Rightarrow F_2)$
+- **subcontrary:** $\neg(\neg F_1 \land \neg F_2)$
+- **subalternated:** $(F_1 \Rightarrow F_2) \land \neg(F_2 \Rightarrow F_1)$
+
+Dostępny jest również wariant z rozkładem Poissona.
+
+**Parametry:** `clauses` (int), `poisson` (bool), `mode` (choice: contradictory/subcontrary/subalternated), `lambda` (float), `lengths` (int list)
+
+---
+
+### P09. Warianty kwadratu logicznego - asymetria
+
+Kontynuacja problemu P08, badanie wpływu asymetrii strukturalnej i semantycznej na relacje z kwadratu logicznego.
+
+**P09a. Asymetria strukturalna (różna złożoność)**
+
+Badanie relacji subalternacji między formułami o istotnie różnej złożoności. Generujemy $F_1, F_2$ o różnej liczbie klauzul: $F_1$ — 50, 100, 200; $F_2$ — 500, 1000, 2000. Proporcja liveness/safety: 50:50. Każdy atom występuje co najmniej raz.
+
+**Parametry:** `clauses_f1` (int), `clauses_f2` (int), `lengths` (int list), `mode` (choice)
+
+**P09b. Asymetria semantyczna (liveness vs safety)**
+
+Badanie wpływu dominującego typu własności w formułach na relacje logiczne. Dwa przypadki:
+
+- case1: $F_1$ — 80% safety, 20% liveness; $F_2$ — 20% safety, 80% liveness
+- case2: $F_1$ — 20% safety, 80% liveness; $F_2$ — 80% safety, 20% liveness
+
+Testowane relacje: sprzeczność (T1) i subalternacja (T2). Liczba klauzul: 50, 100, 200, 500.
+
+**Parametry:** `clauses` (int), `lengths` (int list), `mode` (choice), `semantic_case` (choice: case1/case2)
+
+---
+
+### P10. Ewolucja modeli behawioralnych
+
+Badanie wpływu zmian w modelu na relacje logiczne między jego kolejnymi wersjami. Generujemy formułę bazową $F_1$ (100, 200 lub 500 klauzul). Tworzymy $F_2$ przez modyfikację $p\%$ klauzul. Zmiana klauzuli oznacza losowo:
+
+- **M1:** usunięcie klauzuli
+- **M2:** dodanie nowej klauzuli
+- **M3:** zamiana klauzuli na nową
+
+Zbiór atomów oraz proporcja liveness/safety (50:50) pozostają zachowane. Dla każdej pary $(F_1, F_2)$ testujemy relacje: R1 $(F_1 \Rightarrow F_2)$, R2 $(F_2 \Rightarrow F_1)$, R3 $(F_1 \land \neg F_2)$, R4 $(F_1 \land F_2)$.
+
+**Parametry:** `clauses` (int), `lengths` (int list), `modification_percent` (float), `evolution_mode` (choice: r1-r4)
+
+---
+
+### P11. Kontrolowana redundancja specyfikacji
+
+Badanie wpływu nadmiarowych klauzul na relacje logiczne oraz koszt wnioskowania. Generujemy formułę bazową $F$ (100, 200, 500 lub 1000 klauzul), a następnie tworzymy $F'$, w której określony procent klauzul jest redundantny (0\%, 10\%, 25\%, 50\%). Klauzule redundantne powstają przez:
+
+- **R1:** powtórzenie istniejącej klauzuli
+- **R2:** utworzenie klauzuli równoważnej logicznie (zmiana kolejności literałów)
+- **R3:** utworzenie klauzuli zawierającej podzbiór literałów istniejącej klauzuli
+
+Testowane relacje: T1 (równoważność), T2 (wzmocnienie), T3 (osłabienie), T4 (współspełnialność).
+
+**Parametry:** `clauses` (int), `lengths` (int list), `redundancy_percent` (float), `redundancy_mode` (choice: t1-t4)
+
+---
+
+### P12. Krytyczność klauzul i odporność na braki
+
+Badanie wpływu usunięcia części klauzul na zachowanie własności oraz stabilność wnioskowania. Generujemy formułę $F$ (200, 500 lub 1000 klauzul), a następnie tworzymy $F'$ przez usunięcie części klauzul (5\%, 10\%, 25\%, 50\%). Usuwanie realizowane jest w trzech wariantach:
+
+- **D1 (losowe):** usuwanie bez względu na typ klauzuli
+- **D2 (preferencja safety):** w pierwszej kolejności usuwane są klauzule safety
+- **D3 (preferencja liveness):** w pierwszej kolejności usuwane są klauzule liveness
+
+Dla każdej formuły definiujemy prostą klauzulę $R$ (typu liveness). Testowane relacje: R1 $(F \Rightarrow R)$, R2 $(F' \Rightarrow R)$, R3 $(F \land \neg R)$, R4 $(F' \land \neg R)$.
+
+**Parametry:** `clauses` (int), `lengths` (int list), `degradation_percent` (float), `degradation_variant` (choice: d1-d3), `missing_info_mode` (choice: r1-r4)
+
+---
+
+### P13. Struktura grafu współwystępowania atomów
+
+Badanie wpływu topologii powiązań między atomami na wydajność wnioskowania. Generujemy formuły o liczbie klauzul 100, 200, 500 lub 1000, kontrolując współwystępowanie atomów. Proporcja liveness/safety: 50:50. Każdy atom występuje co najmniej raz.
+
+Rozważane topologie:
+
+- **G1 (rzadki):** duży zbiór atomów względem liczby klauzul, minimalna szansa na współwystępowanie
+- **G2 (gęsty):** bardzo mały zbiór atomów, ekstremalnie wysoka liczba powiązań
+- **G3 (drzewiasty):** atomy uporządkowane hierarchicznie, eliminacja cykli w grafie zależności
+- **G4 (modułowy):** zbiór podzielony na rozłączne klastry; 90% klauzul zawiera atomy z jednego klastra, 10% to mosty między klastrami
+- **G5 (centralny):** wybrany atom (hub) występuje we wszystkich klauzulach
+
+**Parametry:** `clauses` (int), `lengths` (int list), `topology_variant` (choice: g1-g5)
+
+---
+
+### P14. Modularność i integracja modeli behawioralnych
+
+Badanie wpływu stopnia powiązania między modułami na wydajność wnioskowania. Generujemy $n$ modułów $M_1,\dots,M_n$ ($n \in \{2, 3, 5\}$), każdy po 50, 100 lub 200 klauzul. Model globalny: $G = M_1 \land M_2 \land \dots \land M_n$. Proporcja liveness/safety: 50:50.
+
+Warianty sprzężenia:
+
+- **C1 (niezależne):** zbiory atomów rozłączne
+- **C2 (słabo powiązane):** 5–10% współdzielonych atomów
+- **C3 (średnio powiązane):** 25% współdzielonych atomów
+- **C4 (silnie powiązane):** 50% współdzielonych atomów
+
+Testowane relacje: lokalność ($M_i \Rightarrow R$), globalność ($G \Rightarrow R$), współspełnialność ($G \land R$).
+
+**Parametry:** `clauses` (int), `lengths` (int list), `modules_count` (int), `coupling_variant` (choice: c1-c4), `modular_mode` (choice: locality/globality/co-sat)
+
+---
+
+### P15. Kontrolowana sprzeczność lokalna
+
+Badanie wydajności wykrywania niespełnialności (UNSAT) przy kontrolowanym wprowadzaniu sprzecznych klauzul. Generujemy formułę $F$ (100, 200, 500 lub 1000 klauzul), a następnie wprowadzamy $p\%$ par konfliktowych (0\%, 1\%, 5\%, 10\%).
+
+Typy konfliktów:
+
+- **C1 (bezpośrednie):** klauzule o przeciwnej polaryzacji tego samego atomu
+- **C2 (warunkowe):** klauzule sprzeczne przy określonym założeniu
+- **C3 (behawioralne):** konflikt między klauzulą safety (zakaz) i liveness (wymuszenie)
+
+Warianty głębokości:
+
+- **V1 (lokalny):** konflikt w obrębie dwóch bezpośrednio powiązanych klauzul
+- **V2 (bliski):** konflikt wymagający krótkiego łańcucha wnioskowania
+- **V3 (rozproszony):** konflikt wymagający długiego łańcucha wnioskowania
+
+**Parametry:** `clauses` (int), `lengths` (int list), `conflict_percent` (float), `conflict_type` (choice: c1-c3), `conflict_depth` (choice: v1-v3)
+
+---
+
+### P16. Głębokość łańcuchów implikacyjnych
+
+Badanie wydajności wnioskowania przy wielokrotnym złożeniu implikacji. Generujemy formułę $F$ zawierającą liniowy łańcuch implikacji między atomami (długość łańcucha $k \in \{2, 5, 10, 25, 50\}$) oraz dodatkowe klauzule tła, tak aby całkowita liczba klauzul wynosiła 100, 200 lub 500.
+
+Testowane relacje:
+
+- **T1 (przechodniość):** weryfikacja relacji $A_1 \Rightarrow A_k$
+- **T2 (niesprzeczność):** badanie $A_1 \land \neg A_k$ w celu potwierdzenia UNSAT
+
+**Parametry:** `clauses` (int), `lengths` (int list), `chain_length` (int), `implication_mode` (choice: t1/t2)
+
+---
+
+### P17. Struktury Hornowskie i prawie-Hornowskie
+
+Badanie wydajności wnioskowania w zależności od udziału klauzul Hornowskich (z co najwyżej jednym literałem pozytywnym). Rozpatrywane przypadki: 100%, 75%, 50%, 25%, 0% klauzul Hornowskich. Całkowita liczba klauzul: 100, 200, 500, 1000. Pozostałe parametry zgodne z P01/P02.
+
+**Parametry:** `clauses` (int), `lengths` (int list), `horn_percent` (float)
+
+---
+
+### P18. Trudność w pobliżu granicy SAT/UNSAT (przejście fazowe)
+
+Badanie wydajności wnioskowania w zależności od stosunku liczby klauzul do liczby atomów ($\alpha = m/n$). Generujemy formuły o ustalonej liczbie atomów $n$ (np. 100, 200, 500), dobierając liczbę klauzul $m$ dla zadanych wartości $\alpha$.
+
+Rozpatrywane przypadki:
+
+- $\alpha \in \{0.5, 1.0\}$ — niski poziom zagęszczenia
+- $\alpha \in \{2.0, 3.0, 4.0\}$ — obszar potencjalnego przejścia fazowego (zwiększona trudność)
+- $\alpha \in \{6.0, 8.0\}$ — wysoki poziom zagęszczenia
+
+**Parametry:** `atoms` (int), `alpha` (float), `lengths` (int list)
+
+---
